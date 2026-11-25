@@ -105,3 +105,28 @@ h1 { font-family: var(--display); font-size: clamp(40px, 5.2vw, 76px); line-heig
     .mini-paper { width: 96px; height: 136px; }
     .card-info { padding: 18px 14px; }
 }
+
+.legislation-mini { background: white; padding-top: 0; overflow: hidden; }
+.legislation-mini .mini-letterhead { width: calc(100% + 20px); max-width: none; height: auto; filter: none; flex-shrink: 0; margin: 0 0 7px; }
+.cover-thumb { object-fit: contain; }
+
+/* A compact saved-document register above the template catalogue. */
+.library-nav { text-decoration: underline; text-underline-offset: 4px; }
+.library { padding: 30px 0; border-bottom: 1px solid var(--ink); scroll-margin-top: 20px; }
+.library .section-heading { margin-bottom: 10px; }
+.library-note { max-width: 70ch; font-size: 14px; line-height: 1.6; margin: 0 0 18px; }
+#library-status { font-size: 13px; margin: 0; color: var(--accent); }
+#library-status:empty { display: none; }
+.draft-list { margin: 0; padding: 0; list-style: none; }
+.draft-row { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 20px 22px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.draft-row:first-child { border-top: 1px solid var(--line); }
+.draft-info { display: grid; gap: 6px; min-width: 0; }
+.draft-title { font: 400 18px/1.4 var(--display); overflow-wrap: anywhere; }
+.draft-title:hover { text-decoration: underline; text-underline-offset: 4px; }
+.draft-meta { font-size: 12px; line-height: 1.5; }
+.draft-actions { display: flex; gap: 16px; align-items: center; flex-shrink: 0; }
+.draft-open { font-size: 12px; font-weight: 700; color: var(--accent); }
+.draft-open:hover { text-decoration: underline; }
+.draft-delete { font: 600 12px var(--body); background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 8px 12px; cursor: pointer; }
+.draft-delete:hover { background: var(--ground); border-color: var(--ink); }
+@media(max-width: 540px) { .header-label.library-nav { display: block; font-size: 9px; text-align: right; } .draft-row { display: block; padding: 16px; } .draft-actions { margin-top: 14px; justify-content: space-between; } .library { padding: 24px 0; } }

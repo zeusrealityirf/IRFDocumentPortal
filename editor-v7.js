@@ -1,4 +1,36 @@
-(() => {
+(async () => {
+    const sourceScript = document.currentScript;
+    const drafts = window.IRFDrafts;
+    const requestedDraft = drafts ? new URLSearchParams(location.search).get('draft') : null;
+    let savedDraft = null;
+
+    // Restore the editable source before attaching any editing listeners.
+    if (requestedDraft) {
+        try {
+            savedDraft = await drafts.get(requestedDraft);
+            if (!savedDraft || savedDraft.version !== 1) throw new Error('This draft could not be found in this browser.');
+            const original = document.getElementById('paper');
+            const artwork = new Map([...original.querySelectorAll('[data-artwork]')]
+                .map(image => [image.dataset.artwork, image.getAttribute('src')]));
+            const template = document.createElement('template');
+            template.innerHTML = savedDraft.paper;
+            const restored = template.content.firstElementChild;
+            if (!restored || restored.id !== 'paper') throw new Error('The saved draft is invalid.');
+            restored.querySelectorAll('[data-artwork]').forEach(image => {
+                const src = artwork.get(image.dataset.artwork);
+                if (src) image.setAttribute('src', src);
+            });
+            original.replaceWith(restored);
+            document.querySelectorAll('[data-checklist]').forEach((input, index) => {
+                input.checked = Boolean(savedDraft.checklist?.[index]);
+                input.toggleAttribute('checked', input.checked);
+            });
+        } catch (error) {
+            alert(error.message + ' Return to Saved documents to open an existing draft.');
+            location.replace('index.html#saved-documents');
+            return;
+        }
+    }
     const paper = document.getElementById('paper');
     const articles = document.getElementById('articles');
     const preview = document.getElementById('preview-pages');
@@ -9,14 +41,15 @@
         decree: "Prime Minister's Decree",
         appointment: 'Decree of Appointment',
         minutes: 'Cabinet Minutes',
-        directive: 'Cabinet Directive'
+        directive: 'Cabinet Directive', proposal: 'Federal Cabinet Proposal', bill: 'Imperial Bill'
     };
     const fileNames = {
         decree: 'IRF-Decree', appointment: 'IRF-Appointment',
-        minutes: 'IRF-Cabinet-Minutes', directive: 'IRF-Cabinet-Directive'
+        minutes: 'IRF-Cabinet-Minutes', directive: 'IRF-Cabinet-Directive', proposal: 'IRF-Cabinet-Proposal', bill: 'IRF-Imperial-Bill'
     };
+    const legislationModes = ['proposal', 'bill'];
+    const isLegislation = () => legislationModes.includes(documentType.value);
     const isCabinet = () => cabinetModes.includes(documentType.value);
-    const sourceScript = document.currentScript;
     const assetStore = document.getElementById('embedded-assets');
     const embeddedAssets = assetStore ? JSON.parse(assetStore.textContent) : {};
     const assetReady = loadArtwork();
@@ -59,6 +92,19 @@
         clone.querySelector('#preview-pages').replaceChildren();
         // A downloaded document is independent of the hosted portal.
         clone.querySelector('#portal-home')?.remove();
+        const brandLink = clone.querySelector('#brand-home');
+        if (brandLink) {
+            const identity = document.createElement('div');
+            identity.className = 'app-identity';
+            brandLink.querySelector('.brand-return')?.remove();
+            identity.append(...brandLink.childNodes);
+            brandLink.replaceWith(identity);
+        }
+        clone.querySelector('#draft-controls')?.remove();
+        clone.querySelector('#save-draft')?.remove();
+        clone.querySelector('#draft-store-script')?.remove();
+        const note = clone.querySelector('.sidebar-note');
+        if (note) note.textContent = 'Download editable HTML to keep your changes.';
         clone.querySelector('#workspace').classList.remove('preview-only', 'editor-only');
         const stylesheet = document.getElementById('editor-styles');
         if (stylesheet.tagName === 'LINK') {
@@ -164,6 +210,18 @@
         end.firstElementChild.textContent = isCabinet()
             ? (documentType.value === 'directive' ? 'OFFICE OF THE CABINET CLERK' : 'FEDERAL CABINET')
             : 'OFFICE OF THE PRIME MINISTER';
+        if (isLegislation()) {
+            const letterhead = document.createElement('img');
+            letterhead.className = 'legislation-page-art';
+            letterhead.alt = '';
+            letterhead.src = paper.querySelector(`[data-artwork="${documentType.value}-letterhead"]`).src;
+            p.append(letterhead);
+            end.firstElementChild.textContent = documentType.value === 'bill'
+                ? `Written by ${byId('bill-author').textContent.trim()} on ${byId('bill-written-date').textContent.trim()}`
+                : '';
+            if (documentType.value === 'bill' && !byId('bill-author').textContent.trim() && !byId('bill-written-date').textContent.trim())
+                end.firstElementChild.textContent = '';
+        }
         if (isCabinet()) {
             const background = document.createElement('img');
             background.className = 'cabinet-page-art';
@@ -190,6 +248,8 @@
         const classes = element.classList;
         if (classes.contains('cabinet-assets')) return false;
         if (classes.contains('report-only') && (type !== 'directive' || paper.dataset.report !== 'true')) return false;
+        if (classes.contains('proposal-only')) return type === 'proposal';
+        if (classes.contains('bill-only')) return type === 'bill';
         if (classes.contains('minutes-only')) return type === 'minutes';
         if (classes.contains('directive-only')) return type === 'directive';
         if (classes.contains('appointment-only')) return type === 'appointment';
@@ -321,7 +381,28 @@
                 continue;
             if (el.dataset.pageBreak && currentPage.content.children.length)
                 next();
-            if (el.id === 'minutes-items') {
+            if (el.classList.contains('legislation-author')) continue;
+            if (el.classList.contains('legislation-list')) {
+                const entries = [...el.querySelectorAll('.legislation-item')];
+                entries.forEach((item, index) => {
+                    splitText(getEditableText(item.querySelector('.legislation-text')), (text, continued) => {
+                        const block = document.createElement('div');
+                        if (index === 0 && !continued) block.append(cloneForPreview(el.querySelector('h3')));
+                        const entry = cloneForPreview(item);
+                        entry.querySelector('.legislation-text').textContent = text;
+                        if (continued) entry.querySelector('.legislation-item-heading').remove();
+                        block.append(entry);
+                        return block;
+                    });
+                });
+            } else if (el.classList.contains('legislation-section')) {
+                splitText(getEditableText(el.querySelector('.legislation-text')), (text, continued) => {
+                    const section = cloneForPreview(el);
+                    section.querySelector('.legislation-text').textContent = text;
+                    if (continued) section.querySelector('h3').remove();
+                    return section;
+                });
+            } else if (el.id === 'minutes-items') {
                 for (const item of el.children) {
                     if (item.classList.contains('proposal-block')) {
                         // Repeat the table heading when a proposal table crosses a page.
@@ -414,7 +495,7 @@
         }
         pages.forEach((x, i) => {
             x.title.textContent = 'Page ' + (i + 1) + ' of ' + pages.length + (x.p.classList.contains('cabinet-cover') ? ' · Cover' : '');
-            x.end.lastElementChild.textContent = 'Page ' + (i + 1) + ' / ' + pages.length;
+            x.end.lastElementChild.textContent = 'Page ' + (i + 1) + (isLegislation() ? ' of ' : ' / ') + pages.length;
         });
         byId('page-count').textContent = pages.length + ' A4 ' + (pages.length === 1 ? 'page' : 'pages');
         if (hidden) {
@@ -483,6 +564,45 @@
         showActiveSections();
         schedulePreview();
     };
+
+    // Legislative entries retain editable labels so articles and subarticles can be renumbered manually.
+    function addLegislationEntry(groupId, label) {
+        const list = byId(groupId).querySelector('.legislation-entries');
+        const entry = blankCopy(list.firstElementChild);
+        entry.querySelector('.legislation-label').textContent = label;
+        list.append(entry);
+        entry.querySelector('.legislation-text').focus();
+        schedulePreview();
+    }
+    function nextArticleLabel() {
+        const labels = [...byId('bill-articles').querySelectorAll('.legislation-label')];
+        const numbers = labels.map(label => Number(label.textContent.match(/Article\s+(\d+)/i)?.[1]) || 0);
+        return 'Article ' + (Math.max(0, ...numbers) + 1);
+    }
+    byId('add-definition').onclick = () => addLegislationEntry('proposal-definitions', '');
+    byId('add-section').onclick = () => addLegislationEntry('proposal-sections', 'SECTION ' + (byId('proposal-sections').querySelectorAll('.legislation-item').length + 1));
+    byId('add-bill-article').onclick = () => addLegislationEntry('bill-articles', nextArticleLabel());
+    byId('add-subarticle').onclick = () => {
+        const labels = [...byId('bill-articles').querySelectorAll('.legislation-label')];
+        const last = labels.at(-1).textContent.match(/Article\s+(\d+)(?:\.(\d+))?/i);
+        const main = last ? last[1] : '1';
+        const sub = last && last[2] ? Number(last[2]) + 1 : 1;
+        addLegislationEntry('bill-articles', `Article ${main}.${sub}`);
+    };
+    byId('add-comment').onclick = () => addLegislationEntry('bill-comments', '');
+    paper.addEventListener('click', event => {
+        const button = event.target.closest('.legislation-remove');
+        if (!button) return;
+        const entry = button.closest('.legislation-item');
+        if (entry.parentElement.children.length === 1) {
+            alert('Keep at least one entry in this section.');
+            return;
+        }
+        if (confirm('Remove this entry?')) { entry.remove(); schedulePreview(); }
+    });
+    for (const checkbox of document.querySelectorAll('[data-checklist]')) {
+        checkbox.addEventListener('change', () => checkbox.toggleAttribute('checked', checkbox.checked));
+    }
 
     byId('add').onclick = () => addArticle(true);
     articles.addEventListener('click', e => {
@@ -569,10 +689,10 @@
             return;
         e.preventDefault();
         const t = e.clipboardData.getData('text/plain');
-        document.execCommand('insertText', false, ed.matches('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field') ? t : t.replace(/\r?\n/g, ' '));
+        document.execCommand('insertText', false, ed.matches('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field,.legislation-text') ? t : t.replace(/\r?\n/g, ' '));
     });
     paper.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && e.target.closest('.edit') && !e.target.closest('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field'))
+        if (e.key === 'Enter' && e.target.closest('.edit') && !e.target.closest('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field,.legislation-text'))
             e.preventDefault();
     });
     paper.addEventListener('focusout', e => {
@@ -808,10 +928,12 @@
     function updateDocumentType() {
         const type = documentType.value;
         const cabinet = isCabinet();
+        const legislation = isLegislation();
         paper.dataset.documentType = type;
-        for (const mode of ['appointment', ...cabinetModes])
+        for (const mode of ['appointment', ...cabinetModes, ...legislationModes])
             paper.classList.toggle('mode-' + mode, type === mode);
         paper.classList.toggle('mode-cabinet', cabinet);
+        paper.classList.toggle('mode-legislation', legislation);
         for (const id of ['add', 'signature', 'classification'])
             byId(id).style.display = type === 'decree' ? '' : 'none';
         for (const id of ['add-minute', 'add-proposal', 'remove-proposal'])
@@ -822,11 +944,18 @@
         byId('include-cover').disabled = true;
         byId('cover-control').hidden = !cabinet;
         byId('report-control').hidden = type !== 'directive';
-        appearance.style.display = cabinet ? 'none' : '';
-        byId('appearance-field').hidden = cabinet;
-        byId('content-tools').hidden = !['decree', 'minutes'].includes(type);
+        appearance.style.display = cabinet || legislation ? 'none' : '';
+        byId('appearance-field').hidden = cabinet || legislation;
+        byId('content-tools').hidden = !['decree', 'minutes', 'proposal', 'bill'].includes(type);
+        for (const id of ['add-definition', 'add-section']) byId(id).hidden = type !== 'proposal';
+        for (const id of ['add-bill-article', 'add-subarticle', 'add-comment']) byId(id).hidden = type !== 'bill';
+        byId('proposal-guide').hidden = type !== 'proposal';
+        byId('bill-guide').hidden = type !== 'bill';
         if (cabinet) {
             const image = paper.querySelector('[data-artwork="cabinet-paper"]');
+            paper.style.backgroundImage = `url("${image.src}")`;
+        } else if (legislation) {
+            const image = paper.querySelector(`[data-artwork="${type}-letterhead"]`);
             paper.style.backgroundImage = `url("${image.src}")`;
         } else {
             paper.style.removeProperty('background-image');
@@ -839,13 +968,93 @@
     // The portal opens the selected template directly. Saved offline copies
     // continue to use the document type recorded in their markup.
     const homeLink = byId('portal-home');
-    if (homeLink) {
+    if (homeLink && !savedDraft) {
         const requestedType = new URLSearchParams(window.location.search).get('type');
-        if (Object.hasOwn(documentNames, requestedType))
-            documentType.value = requestedType;
-        homeLink.addEventListener('click', event => {
-            if (!confirm('Return to the portal? Save your document first if you want to keep your changes.'))
+        if (Object.hasOwn(documentNames, requestedType)) documentType.value = requestedType;
+    }
+
+    // Drafts store the editable source, not rendered pages or duplicate artwork.
+    // The original asset files are reattached when a draft is opened.
+    let draftId = savedDraft?.id || null;
+    let lastSaved = null;
+    let saving = false;
+    const draftName = byId('draft-name');
+    const draftStatus = byId('draft-status');
+    const saveDraftButton = byId('save-draft');
+
+    function draftContent() {
+        const source = paper.cloneNode(true);
+        source.style.removeProperty('background-image');
+        source.querySelectorAll('[data-artwork]').forEach(image => image.removeAttribute('src'));
+        return {
+            type: documentType.value,
+            name: draftName?.value.trim() || documentNames[documentType.value],
+            paper: source.outerHTML,
+            checklist: [...document.querySelectorAll('[data-checklist]')].map(input => input.checked)
+        };
+    }
+
+    function hasUnsavedChanges() {
+        return lastSaved !== null && JSON.stringify(draftContent()) !== lastSaved;
+    }
+
+    async function saveDraft() {
+        if (!drafts || saving) return;
+        document.activeElement?.blur();
+        renderPreview();
+        saving = true;
+        saveDraftButton.disabled = true;
+        draftStatus.textContent = 'Saving…';
+        try {
+            const content = draftContent();
+            const id = draftId || drafts.newId();
+            await drafts.put({ ...content, id, version: 1, updatedAt: Date.now() });
+            draftId = id;
+            draftName.value = content.name;
+            lastSaved = JSON.stringify(content);
+            draftStatus.textContent = 'Saved in this browser.';
+            const url = new URL(location.href);
+            url.searchParams.delete('type');
+            url.searchParams.set('draft', id);
+            history.replaceState(null, '', url);
+        } catch (error) {
+            draftStatus.textContent = 'Could not save. Download editable HTML as a backup.';
+            console.error('Draft storage:', error);
+        } finally {
+            saving = false;
+            saveDraftButton.disabled = false;
+        }
+    }
+
+    if (!drafts && saveDraftButton) saveDraftButton.hidden = true;
+    if (drafts && saveDraftButton) {
+        byId('draft-controls').hidden = false;
+        draftName.value = savedDraft?.name || '';
+        if (savedDraft) draftStatus.textContent = 'Saved in this browser.';
+        saveDraftButton.addEventListener('click', saveDraft);
+        for (const eventName of ['input', 'change', 'click']) {
+            document.addEventListener(eventName, () => {
+                setTimeout(() => {
+                    if (!saving && hasUnsavedChanges()) draftStatus.textContent = 'Unsaved changes.';
+                }, 120);
+            });
+        }
+        // A signature upload can complete after the file input event.
+        new MutationObserver(() => {
+            if (!saving && hasUnsavedChanges()) draftStatus.textContent = 'Unsaved changes.';
+        }).observe(paper, { subtree: true, attributes: true, attributeFilter: ['src'] });
+        window.addEventListener('beforeunload', event => {
+            if (saving || hasUnsavedChanges()) {
                 event.preventDefault();
+                event.returnValue = '';
+            }
+        });
+    }
+    for (const link of [homeLink, byId('brand-home'), document.querySelector('.draft-library-link')]) {
+        if (!link) continue;
+        // beforeunload also guards browser navigation and refreshing.
+        if (!drafts) link.addEventListener('click', event => {
+            if (!confirm('Return to the portal? Download your editable HTML before leaving.')) event.preventDefault();
         });
     }
     documentType.onchange = updateDocumentType;
@@ -854,9 +1063,16 @@
     assetReady.then(() => {
         updateDocumentType();
         for (const id of ['png', 'save', 'print']) byId(id).disabled = false;
+        if (drafts && saveDraftButton) {
+            lastSaved = JSON.stringify(draftContent());
+            saveDraftButton.disabled = false;
+        }
     }).catch(error => {
         byId('page-count').textContent = 'Artwork failed to load. Check the assets folder and refresh.';
         console.error('Artwork:', error);
     });
     window.addEventListener('resize', schedulePreview);
-})();
+})().catch(error => {
+    console.error(error);
+    document.getElementById('page-count').textContent = 'Could not initialise the editor. Refresh and try again.';
+});

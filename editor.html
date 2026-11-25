@@ -5,56 +5,72 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>IRF Government Document Editor</title>
-<link href="styles-v4.css" id="editor-styles" rel="stylesheet"/>
+<link href="styles-v7.css" id="editor-styles" rel="stylesheet"/>
 <link data-artwork="government-logo" href="assets/government-logo.webp" rel="icon"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Libre+Baskerville:wght@400;700&amp;display=swap" rel="stylesheet"/>
 </head>
 <body>
 <header class="app-header">
-    <div class="app-identity"><img data-artwork="government-logo" src="assets/government-logo.webp" alt="Government emblem"><div><span class="app-overline">Government document service</span><h1 id="brand-title">IRF Document Editor</h1></div></div>
-    <div class="export-actions" aria-label="Export document">
-        <span id="page-count" class="status" aria-live="polite">Loading artwork…</span>
-        <button disabled="" id="save" type="button">Save editable HTML</button>
-        <button disabled="" id="png" type="button">Export PNG pages</button>
-        <button class="primary" disabled="" id="print" type="button">Print / Save PDF</button>
-    </div>
+<a class="app-identity" id="brand-home" href="index.html" aria-label="Return to the Government Document Portal"><img alt="Government emblem" data-artwork="government-logo" src="assets/government-logo.webp"/><div><span class="app-overline">Government document service</span><h1 id="brand-title">IRF Document Editor</h1></div><span class="brand-return" aria-hidden="true">↗</span></a>
+<div aria-label="Export document" class="export-actions">
+<span aria-live="polite" class="status" id="page-count">Loading artwork…</span>
+<button disabled id="save-draft" class="draft-save" type="button">Save draft</button>
+<button disabled="" id="save" type="button">Save editable HTML</button>
+<button disabled="" id="png" type="button">Export PNG pages</button>
+<button class="primary" disabled="" id="print" type="button">Print / Save PDF</button>
+</div>
 </header>
 <div class="app-layout">
-<aside class="toolbar" aria-label="Document editing tools">
-    <nav class="side-navigation" aria-label="Portal navigation"><a class="portal-home" href="index.html" id="portal-home">← Home</a></nav>
-    <div class="side-group">
-        <h2>Document</h2>
-        <label class="field-label" for="doc-type">Template</label>
-        <select aria-label="Document type" id="doc-type">
+<aside aria-label="Document editing tools" class="toolbar">
+<nav aria-label="Portal navigation" class="side-navigation"><a class="portal-home" href="index.html" id="portal-home">← Home</a></nav>
+<section class="side-group draft-controls" id="draft-controls" hidden>
+<h2>Saved document</h2>
+<label class="field-label" for="draft-name">Draft name</label>
+<input id="draft-name" type="text" maxlength="120" placeholder="[Document name]" autocomplete="off"/>
+<p id="draft-status" class="hint" role="status" aria-live="polite">Not saved yet.</p>
+<a class="draft-library-link" href="index.html#saved-documents">View saved documents →</a>
+<p class="hint">Drafts are stored in this browser. Download editable HTML for a portable backup.</p>
+</section>
+<div class="side-group">
+<h2>Document</h2>
+<label class="field-label" for="doc-type">Template</label>
+<select aria-label="Document type" id="doc-type">
 <option selected="" value="decree">Prime Minister's Decree</option>
 <option value="appointment">Decree of Appointment</option>
 <option value="minutes">Cabinet Minutes</option>
 <option value="directive">Cabinet Directive</option>
+<option value="proposal">Federal Cabinet Proposal</option>
+<option value="bill">Imperial Bill</option>
 </select>
-        <div id="appearance-field"><label class="field-label" for="appearance">Appearance</label><select aria-label="Paper and crest appearance" id="appearance">
+<div id="appearance-field"><label class="field-label" for="appearance">Appearance</label><select aria-label="Paper and crest appearance" id="appearance">
 <option value="archive">Ivory / monochrome</option>
 <option value="gold">Ivory / gold crest</option>
 <option value="clean">White / monochrome</option>
 <option value="clean gold">White / gold crest</option>
 </select></div>
-        <label class="cabinet-control" hidden="" id="cover-control"><input checked="" disabled="" id="include-cover" type="checkbox"/> Front cover included</label>
-        <label class="cabinet-control" hidden="" id="report-control"><input id="include-report" type="checkbox"/> Report addendum</label>
-    </div>
-    <div class="side-group" id="content-tools">
-        <h2>Content</h2>
-        <button id="add" type="button">+ Article</button>
-        <button id="signature" type="button">Toggle second signature</button>
-        <button id="classification" type="button">Toggle classification</button>
-        <button hidden="" id="add-minute" type="button">+ Meeting item</button>
-        <button hidden="" id="add-proposal" type="button">+ Proposal row</button>
-        <button hidden="" id="remove-proposal" type="button">− Proposal row</button>
-    </div>
-    <div class="side-group">
-        <h2>Official stamp</h2>
-        <label class="stamp-toggle"><input id="include-stamp" type="checkbox"> Add PM stamp</label>
-        <span class="stamp-settings" hidden="" id="stamp-settings">
+<label class="cabinet-control" hidden="" id="cover-control"><input checked="" disabled="" id="include-cover" type="checkbox"/> Front cover included</label>
+<label class="cabinet-control" hidden="" id="report-control"><input id="include-report" type="checkbox"/> Report addendum</label>
+</div>
+<div class="side-group" id="content-tools">
+<h2>Content</h2>
+<button id="add" type="button">+ Article</button>
+<button id="signature" type="button">Toggle second signature</button>
+<button id="classification" type="button">Toggle classification</button>
+<button hidden="" id="add-minute" type="button">+ Meeting item</button>
+<button hidden="" id="add-proposal" type="button">+ Proposal row</button>
+<button hidden="" id="remove-proposal" type="button">− Proposal row</button>
+<button hidden="" id="add-definition" type="button">+ Definition</button>
+<button hidden="" id="add-section" type="button">+ Section</button>
+<button hidden="" id="add-bill-article" type="button">+ Article</button>
+<button hidden="" id="add-subarticle" type="button">+ Subarticle</button>
+<button hidden="" id="add-comment" type="button">+ Article comment</button>
+</div>
+<div class="side-group">
+<h2>Official stamp</h2>
+<label class="stamp-toggle"><input id="include-stamp" type="checkbox"/> Add PM stamp</label>
+<span class="stamp-settings" hidden="" id="stamp-settings">
 <label>Size <select aria-label="Stamp size" id="stamp-size">
 <option value="25">Small (25 mm)</option>
 <option selected="" value="35">Medium (35 mm)</option>
@@ -66,41 +82,45 @@
 <option selected="" value="right">Right</option>
 </select></label>
 </span>
-    </div>
-    <div class="side-group">
-        <h2>Workspace</h2>
-        <label class="field-label" for="view">View</label>
-        <select aria-label="Document view" id="view">
+</div>
+<div class="side-group">
+<h2>Workspace</h2>
+<label class="field-label" for="view">View</label>
+<select aria-label="Document view" id="view">
 <option value="both">Editor + A4 preview</option>
 <option value="preview">A4 preview only</option>
 <option value="editor">Editor only</option>
 </select>
-        <p class="hint">Click the document to edit. Grey text is a placeholder.</p>
-    </div>
-    <p class="sidebar-note">Save your editable HTML before leaving.</p>
+<p class="hint">Click the document to edit. Grey text is a placeholder.</p>
+</div>
+<div class="side-group drafting-guide" hidden="" id="proposal-guide"><h2>Drafting guidance</h2><p>Use clear language and keep articles focused on essential points. Drafting guidance is not exported.</p></div>
+<div class="side-group drafting-guide" hidden="" id="bill-guide"><h2>Submission checklist</h2><p>For reference only; not included in exports. Comments on articles are not legally binding.</p><label><input data-checklist="0" type="checkbox"/> Got a sponsor</label><label><input data-checklist="1" type="checkbox"/> Consulted according to the Expert Opinion Act</label><label><input data-checklist="2" type="checkbox"/> Simplified the bill</label><label><input data-checklist="3" type="checkbox"/> Had people proofread the bill</label><label><input data-checklist="4" type="checkbox"/> Added counciladmin google group</label><label><input data-checklist="5" type="checkbox"/> Removed the bill writing instructions</label></div>
+<p class="sidebar-note">Save your draft or download an editable HTML backup before leaving.</p>
 </aside>
 <main class="workspace" id="workspace">
 <section class="editor-pane">
 <div class="pane-label"><div><span class="pane-kicker">01 / Source</span><h2>Editable document</h2></div><span>Click to edit</span></div>
 <article class="paper" data-cover="true" data-report="false" id="paper">
 <div class="cabinet-assets" hidden="">
-<img alt="" data-artwork="cabinet-paper" src="assets/cabinet-paper.jpg"/>
-<img alt="Cabinet cover" data-artwork="minutes-cover" src="assets/cabinet-minutes-cover.jpg"/>
-<img alt="Cabinet Clerk cover" data-artwork="directive-cover" src="assets/cabinet-directive-cover.jpg"/>
-</div>
+<img alt="Federal Government letterhead" data-artwork="proposal-letterhead" src="assets/proposal-letterhead.png"/>
+<img alt="Imperial Bill letterhead" data-artwork="bill-letterhead" src="assets/bill-letterhead.png"/>
+<img alt="" data-artwork="cabinet-paper" src="assets/cabinet-paper.jpg">
+<img alt="Cabinet cover" data-artwork="minutes-cover" src="assets/cabinet-minutes-cover.jpg">
+<img alt="Cabinet Clerk cover" data-artwork="directive-cover" src="assets/cabinet-directive-cover.jpg">
+</img></img></img></div>
 <header class="masthead decree-only">
 <div class="topline">
 <span aria-label="Office reference" class="edit inline optional" contenteditable="true" data-placeholder="Office reference" role="textbox"></span>
 <span aria-label="Classification" class="classification edit inline" contenteditable="true" data-placeholder="Classification (optional)" role="textbox"></span>
 </div>
-<img alt="Imperialist Robloxian Federation imperial eagle" class="crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png">
+<img alt="Imperialist Robloxian Federation imperial eagle" class="crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png"/>
 <div aria-label="Government name" class="state edit" contenteditable="true" role="textbox">Government of the<br/>Imperialist Robloxian Federation</div>
 <div aria-label="Issuing office" class="office edit" contenteditable="true" role="textbox">Office of the Prime Minister</div>
 <div class="double-rule"></div>
 </header>
 <section class="appointment-only appointment-certificate" hidden="">
 <div class="appointment-meta-row">
-<img alt="Imperial eagle" class="appointment-crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png">
+<img alt="Imperial eagle" class="appointment-crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png"/>
 <div class="appointment-meta-item">
 <span aria-label="Appointment date heading" class="edit inline" contenteditable="true" data-placeholder="Month Year" role="textbox"></span>
 </div>
@@ -146,27 +166,27 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 <div class="secondary">
 <div aria-label="Countersigning official title" class="sign-role edit" contenteditable="true" data-placeholder="Countersigning official (optional)" role="textbox"></div>
 <div class="sign-line">
-<img alt="Uploaded signature" class="sign-art" hidden="">
+<img alt="Uploaded signature" class="sign-art" hidden=""/>
 <div aria-label="Countersignature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
 </div>
 <div class="signature-tools">
 <button data-sign="upload" type="button">Upload signature</button>
 <button data-sign="remove" type="button">Remove image</button>
-<input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file">
-</input></div>
+<input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file"/>
+</div>
 <div aria-label="Countersigning official name" class="sign-name edit" contenteditable="true" data-placeholder="Name" role="textbox"></div>
 </div>
 <div class="primary-signature">
 <div aria-label="Signing official title" class="sign-role edit" contenteditable="true" role="textbox">Prime Minister of the<br/>Imperialist Robloxian Federation</div>
 <div class="sign-line">
-<img alt="Uploaded signature" class="sign-art" hidden=""/>
+<img alt="Uploaded signature" class="sign-art" hidden="">
 <div aria-label="Prime Minister signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
-</div>
+</img></div>
 <div class="signature-tools">
 <button data-sign="upload" type="button">Upload signature</button>
 <button data-sign="remove" type="button">Remove image</button>
-<input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file">
-</input></div>
+<input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file"/>
+</div>
 <div aria-label="Prime Minister name" class="sign-name edit" contenteditable="true" data-placeholder="Name" role="textbox"></div>
 </div>
 </div>
@@ -178,12 +198,12 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 </section>
 </div>
 <header class="cabinet-header minutes-only" hidden="">
-<img alt="Government emblem" class="cabinet-emblem" data-artwork="government-logo" src="assets/government-logo.webp"/>
+<img alt="Government emblem" class="cabinet-emblem" data-artwork="government-logo" src="assets/government-logo.webp">
 <h2>GOVERNMENT OF THE FEDERATION</h2>
 <div class="cabinet-office">FEDERAL CABINET</div>
 <div aria-label="Meeting title" class="edit cabinet-document-title" contenteditable="true" data-placeholder="" role="textbox">Minutes of the Federal Cabinet Meeting</div>
 <div aria-label="Meeting date" class="edit cabinet-date" contenteditable="true" data-placeholder="DAY DD MONTH YYYY" role="textbox"></div>
-</header>
+</img></header>
 <section class="minutes-only cabinet-items" hidden="" id="minutes-items">
 <div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div aria-label="Meeting item heading" class="edit cabinet-item-title" contenteditable="true" data-placeholder="Item heading" role="textbox">Apologies and Attendance</div><span>[</span><div aria-label="Item time" class="edit cabinet-item-time" contenteditable="true" data-placeholder="XX:00" role="textbox"></div><span>]</span><button class="cabinet-remove remove" title="Remove meeting item" type="button">×</button></div><div aria-label="Meeting notes" aria-multiline="true" class="edit cabinet-text" contenteditable="true" data-placeholder="Present, absent and apologies." role="textbox"></div></div>
 <div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div aria-label="Meeting item heading" class="edit cabinet-item-title" contenteditable="true" data-placeholder="Item heading" role="textbox">Introductions</div><span>[</span><div aria-label="Item time" class="edit cabinet-item-time" contenteditable="true" data-placeholder="XX:00" role="textbox"></div><span>]</span><button class="cabinet-remove remove" title="Remove meeting item" type="button">×</button></div><div aria-label="Meeting notes" aria-multiline="true" class="edit cabinet-text" contenteditable="true" data-placeholder="Record introductions and remarks." role="textbox"></div></div>
@@ -227,6 +247,23 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 <section class="directive-only report-only report-section" hidden=""><strong>Two-Week Action Plan:</strong><div aria-label="Two-Week Action Plan:" aria-multiline="true" class="edit cabinet-text" contenteditable="true" data-placeholder="Explain the main actions you intend to take during the next two weeks." role="textbox"></div></section>
 <section class="directive-only report-only report-section report-stats" hidden=""><strong>Ministry Personnel Statistics:</strong><table class="cabinet-table"><thead><tr><th>CATEGORY</th><th>CURRENT TOTAL</th></tr></thead><tbody><tr><td>New Members (Last 14 Days)</td><td><div aria-label="New Members (Last 14 Days)" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr><tr><td>Low Ranking Members</td><td><div aria-label="Low Ranking Members" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr><tr><td>Non-Commissioned Officers</td><td><div aria-label="Non-Commissioned Officers" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr><tr><td>Officers</td><td><div aria-label="Officers" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr><tr><td>NCO’s Enrolled in MoE</td><td><div aria-label="NCO’s Enrolled in MoE" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr><tr><td>Exiles (Last 14 Days)</td><td><div aria-label="Exiles (Last 14 Days)" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr><tr><td>Members about to be exiled (on 2 strikes)</td><td><div aria-label="Members about to be exiled (on 2 strikes)" class="edit" contenteditable="true" data-placeholder="Total" role="textbox"></div></td></tr></tbody></table></section>
 <section class="directive-only report-only report-section" hidden=""><strong>What should Government Command know?</strong><div aria-label="Government Command notes" aria-multiline="true" class="edit cabinet-text" contenteditable="true" data-placeholder="Briefly mention challenges, concerns or support needed." role="textbox"></div></section>
+<header class="proposal-only legislation-title proposal-title" hidden="">
+<div class="legislation-state">THE FEDERAL GOVERNMENT</div><h2>FEDERAL CABINET PROPOSAL</h2><div class="legislation-rule"></div>
+<div aria-label="Proposal title" class="edit legislation-subject" contenteditable="true" data-placeholder="[Title]" role="textbox"></div>
+<div class="legislation-dates"><div><span>Made</span><span aria-hidden="true" class="date-leader"></span><span aria-label="Made" class="edit" contenteditable="true" data-placeholder="DD Month YYYY" role="textbox"></span></div><div><span>Coming into force</span><span aria-hidden="true" class="date-leader"></span><span aria-label="Coming into force" class="edit" contenteditable="true" data-placeholder="DD Month YYYY" role="textbox"></span></div><div><span>Laid before The Cabinet</span><span aria-hidden="true" class="date-leader"></span><span aria-label="Laid before The Cabinet" class="edit" contenteditable="true" data-placeholder="DD Month YYYY" role="textbox"></span></div></div><div class="legislation-rule"></div>
+</header>
+<section class="proposal-only legislation-contents" hidden=""><h3>Table of Contents</h3><ul><li>Definitions</li><li>Preface</li><li>Sections</li><li>Conclusion</li></ul></section>
+<section class="proposal-only legislation-list" data-page-break="true" hidden="" id="proposal-definitions"><h3>Section 1: Definitions</h3><div class="legislation-entries"><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="[Term]" class="edit legislation-label" contenteditable="true" data-placeholder="[Term]" role="textbox"></span></div><div aria-label="[Definition]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Definition]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div></div></section><section class="proposal-only legislation-section" hidden=""><h3>Section 2: Preface</h3><div aria-label="Preface" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[What the bill seeks to achieve]" role="textbox"></div></section><section class="proposal-only legislation-list" hidden="" id="proposal-sections"><h3>Section 3: Sections</h3><div class="legislation-entries"><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="SECTION 1" class="edit legislation-label" contenteditable="true" data-placeholder="SECTION 1" role="textbox">SECTION 1</span></div><div aria-label="[Provision]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Provision]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="SECTION 2" class="edit legislation-label" contenteditable="true" data-placeholder="SECTION 2" role="textbox">SECTION 2</span></div><div aria-label="[Provision]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Provision]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div></div></section><section class="proposal-only legislation-section" hidden=""><h3>Section 4: Conclusion</h3><div aria-label="Conclusion" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Closing statement]" role="textbox"></div></section><section class="proposal-only legislation-signatures" hidden=""><div class="proposal-signing"><div>IMPERIAL GOVERNMENT<div aria-label="Signing date" class="edit" contenteditable="true" data-placeholder="DD Month YYYY" role="textbox"></div></div><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label=" signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label=" name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Username]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox"></div></div></div><div class="document-stamp" hidden=""><img alt="Office of the Prime Minister stamp" data-artwork="pm-stamp" src="assets/prime-minister-stamp.png"/></div></section>
+<header class="bill-only legislation-title bill-title" hidden="">
+<div class="legislation-state">THE IMPERIAL ROBLOXIAN FEDERATION</div><div aria-label="Bill name" class="edit legislation-subject bill-subject" contenteditable="true" data-placeholder="[INSERT BILL NAME]" role="textbox"></div>
+<div class="legislation-rule"></div>
+<div aria-label="Enacting formula" aria-multiline="true" class="edit bill-enacting legislation-text" contenteditable="true" data-placeholder="" role="textbox">By the Grace of God, be it enacted in the name of Her Imperial Majesty, the Tsarina of All Russia. In fulfilment of the divine will and by the mandate of the Imperial Council, subordinate to the Crown, it is hereby decreed that the following shall be legislated and executed by the Federal Administration and subordinate bodies therein.</div>
+<div class="bill-proposer">To be proposed by <span aria-label="Proposer" class="edit" contenteditable="true" data-placeholder="[username]" role="textbox"></span></div>
+<div class="bill-purpose">AN ACT TO: <span aria-label="Purpose" class="edit" contenteditable="true" data-placeholder="[Brief description of what the bill aims to achieve]" role="textbox"></span></div>
+<div class="legislation-dates"><div><span>Made</span><span aria-hidden="true" class="date-leader"></span><span aria-label="Made" class="edit" contenteditable="true" data-placeholder="DD Month YYYY" role="textbox"></span></div><div><span>Coming into force</span><span aria-hidden="true" class="date-leader"></span><span aria-label="Coming into force" class="edit" contenteditable="true" data-placeholder="DD Month YYYY" role="textbox"></span></div></div><div class="legislation-rule"></div>
+</header>
+<section class="bill-only legislation-section" hidden=""><h3>1 Introduction</h3><div aria-label="Introduction" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Explain why you made this bill]" role="textbox"></div></section><section class="bill-only legislation-list" data-page-break="true" hidden="" id="bill-articles"><h3>2 Articles</h3><div class="legislation-entries"><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="Article 1" class="edit legislation-label" contenteditable="true" data-placeholder="Article 1" role="textbox">Article 1</span></div><div aria-label="[Article text]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Article text]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="Article 1.1" class="edit legislation-label" contenteditable="true" data-placeholder="Article 1.1" role="textbox">Article 1.1</span></div><div aria-label="[Subarticle text]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Subarticle text]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="Article 2" class="edit legislation-label" contenteditable="true" data-placeholder="Article 2" role="textbox">Article 2</span></div><div aria-label="[Article text]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Article text]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div></div></section><section class="bill-only legislation-list" hidden="" id="bill-comments"><h3>3 Comments on Articles</h3><div class="legislation-entries"><div class="legislation-item"><div class="legislation-item-heading"><span aria-label="Article 1" class="edit legislation-label" contenteditable="true" data-placeholder="Article 1" role="textbox">Article 1</span></div><div aria-label="[Comment or relevant expert opinion]" aria-multiline="true" class="edit legislation-text" contenteditable="true" data-placeholder="[Comment or relevant expert opinion]" role="textbox"></div><button aria-label="Remove entry" class="remove legislation-remove" type="button">×</button></div></div></section><section class="bill-only legislation-signatures" data-page-break="true" hidden=""><h3>4 Signatures</h3><p>Signed,</p><div class="bill-signing"><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label="ROYAL ASSENT signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label="ROYAL ASSENT name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Name]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox">ROYAL ASSENT</div></div><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label="Bill Author signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label="Bill Author name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Name]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox">Bill Author</div></div><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label="Bill Sponsor signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label="Bill Sponsor name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Name]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox">Bill Sponsor</div></div><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label=" signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label=" name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Name]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox"></div></div><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label=" signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label=" name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Name]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox"></div></div><div class="legislation-signer"><div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden=""/><div aria-label=" signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div></div><div class="signature-tools"><button data-sign="upload" type="button">Upload signature</button><button data-sign="remove" type="button">Remove image</button><input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature" type="file"/></div><div aria-label=" name" class="edit legislation-sign-name" contenteditable="true" data-placeholder="[Name]" role="textbox"></div><div aria-label="Signatory role" class="edit legislation-sign-role" contenteditable="true" data-placeholder="[Rank]" role="textbox"></div></div></div><div class="document-stamp" hidden=""><img alt="Office of the Prime Minister stamp" data-artwork="pm-stamp" src="assets/prime-minister-stamp.png"/></div></section>
+<section class="bill-only legislation-author" hidden=""><div>Written by <span aria-label="Bill author username" class="edit" contenteditable="true" data-placeholder="[username]" id="bill-author" role="textbox"></span> on <span aria-label="Written date" class="edit" contenteditable="true" data-placeholder="DD/MM/YY" id="bill-written-date" role="textbox"></span></div></section>
 </article>
 </section>
 <section class="preview-pane">
@@ -235,6 +272,7 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 </section>
 </main>
 </div>
-<script id="editor-script" src="editor-v4.js"></script>
+<script id="draft-store-script" src="draft-store-v7.js"></script>
+<script id="editor-script" src="editor-v7.js"></script>
 </body>
 </html>

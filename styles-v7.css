@@ -1224,3 +1224,66 @@ body { font-family: var(--ui-body); }
     .preview-page.paper, .editor-pane .paper { zoom: 1 !important; }
 }
 @media(prefers-reduced-motion: reduce) { .toolbar button, .export-actions button { transition: none; } }
+
+/* Legislative stationery and reusable sections. */
+.paper.mode-legislation, .preview-page.paper.mode-legislation {
+    --paper: #fff; --rule: #aaa; color: #181818; font-family: 'Times New Roman', Georgia, serif;
+    font-size: 12pt; line-height: 1.42; padding: 43mm 25mm 17mm; background-color: white;
+    background-repeat: no-repeat; background-size: 100% auto;
+}
+.paper.mode-bill, .preview-page.paper.mode-bill { padding-top: 26mm; }
+.legislation-page-art { position: absolute; top: 0; left: 0; width: 100%; height: auto; display: block; pointer-events: none; }
+.mode-legislation .page-content, .mode-legislation .page-end { position: relative; }
+.mode-legislation .page-end { border: 0; display: flex; flex-direction: column; align-items: center; font: 11pt/1.4 'Times New Roman', Georgia, serif; gap: 1mm; }
+.legislation-title { text-align: center; }
+.legislation-state { font-size: 18pt; line-height: 1.2; }
+.legislation-title h2 { font-size: 24pt; line-height: 1.15; margin: 2mm 0 7mm; }
+.legislation-rule { border-top: 1px solid #aaa; margin: 7mm 0; }
+.legislation-subject { font-weight: bold; font-size: 18pt; line-height: 1.25; margin: 8mm 0; }
+.bill-subject { font-size: 25pt; margin: 3mm 0 8mm; }
+.bill-title { padding-top: 10mm; }
+.bill-enacting { font-style: italic; font-size: 11pt; text-align: center; }
+.bill-proposer { font-style: italic; margin: 4mm 0; }
+.bill-purpose { font-size: 17pt; font-weight: bold; line-height: 1.3; margin: 4mm 0; }
+.legislation-dates { max-width: 145mm; margin: 12mm auto; font-style: italic; text-align: left; }
+.legislation-dates > div { display: grid; grid-template-columns: minmax(0, 1fr) 20mm minmax(0, 1fr); gap: 3mm; align-items: baseline; margin-bottom: 2mm; }
+.date-leader { border-bottom: 1px dashed #888; }
+.legislation-contents { margin-top: 15mm; }
+.legislation-contents ul { list-style: none; font-style: italic; padding-left: 8mm; margin: 2mm 0 0; }
+.legislation-contents li::before { content: '– '; }
+.legislation-section, .legislation-item, .legislation-signatures { margin: 0 0 5mm; }
+.mode-legislation h3 { font-size: 14pt; margin: 0 0 3mm; line-height: 1.25; }
+.mode-bill h3 { font-weight: normal; font-style: italic; border-top: 1px solid #aaa; border-bottom: 1px solid #aaa; padding: 3mm 0; text-align: center; }
+.legislation-text { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.4em; }
+.legislation-item { position: relative; padding-left: 8mm; }
+.legislation-item-heading { font-weight: bold; margin-bottom: 1mm; }
+.legislation-item .remove { right: -12mm; }
+.legislation-list { margin-bottom: 6mm; }
+.legislation-signatures { margin-top: 8mm; }
+.proposal-signing { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; align-items: end; font-size: 11pt; }
+.proposal-signing > div:last-child { text-align: right; }
+.bill-signing { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10mm 6mm; }
+.legislation-signer { min-width: 0; font-size: 10.5pt; }
+.legislation-signer .sign-line { margin-top: 1mm; }
+.legislation-signer .sign-art { height: 13mm; }
+.legislation-sign-role { font-style: italic; }
+.legislation-author { border-top: 1px solid #aaa; padding-top: 3mm; margin-top: 6mm; text-align: center; font-size: 11pt; }
+.drafting-guide { font-size: 12px; line-height: 1.5; }
+.drafting-guide p { margin: 0 0 4px; }
+.drafting-guide label { display: flex; align-items: flex-start; gap: 7px; }
+@media print {
+    .preview-page.paper.mode-legislation { padding: 43mm 25mm 17mm !important; background: white !important; }
+    .preview-page.paper.mode-bill { padding-top: 26mm !important; }
+}
+
+/* Saved drafts and the clickable document identity. */
+.app-identity { color: var(--ui-ink); text-decoration: none; border-radius: 3px; min-width: 0; }
+a.app-identity { padding: 6px; margin: -6px; transition: background .18s ease; }
+a.app-identity:hover { background: var(--ui-ground); }
+a.app-identity:hover h1 { color: var(--ui-accent); }
+.brand-return { color: var(--ui-accent); font-size: 17px; align-self: center; margin-left: 3px; }
+.export-actions .draft-save { border-color: var(--ui-accent); color: var(--ui-accent); }
+.toolbar #draft-name { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid #252b2866; background: var(--ui-surface); color: var(--ui-ink); font: 400 13px var(--ui-body); border-radius: 2px; }
+.draft-library-link { color: var(--ui-accent); font: 600 12px var(--ui-body); text-decoration: underline; text-underline-offset: 3px; }
+@media screen and (max-width: 740px) { .draft-controls { grid-column: 1 / -1; } .app-identity h1 { overflow-wrap: anywhere; } }
+@media(prefers-reduced-motion: reduce) { a.app-identity { transition: none; } }
