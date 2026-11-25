@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta content="width=device-width,initial-scale=1" name="viewport"/>
+        <title>IRF Government Document Editor</title>
+        <link href="styles.css" id="editor-styles" rel="stylesheet"/>
+        <link data-artwork="government-logo" href="assets/government-logo.webp" rel="icon"/>
+    </head>
+    <body>
+        <nav aria-label="Document editing tools" class="toolbar">
+            <span class="brand">
+                <img alt="IRF Government logo" class="toolbar-logo" data-artwork="government-logo" src="assets/government-logo.webp"/>
+                <span id="brand-title">IRF Document Editor</span>
+            </span>
+            <a id="portal-home" class="portal-home" href="index.html">← Home</a>
+            <span class="hint">Click the document to edit · grey text is a placeholder</span>
+            <button id="add" type="button">+ Article</button>
+            <button id="signature" type="button">Toggle second signature</button>
+            <button id="classification" type="button">Toggle classification</button>
+            <select aria-label="Document type" id="doc-type">
+                <option selected="" value="decree">Prime Minister's Decree</option>
+                <option value="appointment">Decree of Appointment</option>
+                <option value="minutes">Cabinet Minutes</option>
+                <option value="directive">Cabinet Directive</option>
+            </select>
+            <button id="add-minute" type="button" hidden>+ Meeting item</button>
+            <button id="add-proposal" type="button" hidden>+ Proposal row</button>
+            <button id="remove-proposal" type="button" hidden>− Proposal row</button>
+            <label id="cover-control" class="cabinet-control" hidden><input id="include-cover" type="checkbox" checked disabled> Front cover included</label>
+            <label id="report-control" class="cabinet-control" hidden><input id="include-report" type="checkbox"> Report addendum</label>
+            <select aria-label="Paper and crest appearance" id="appearance">
+                <option value="archive">Ivory / monochrome</option>
+                <option value="gold">Ivory / gold crest</option>
+                <option value="clean">White / monochrome</option>
+                <option value="clean gold">White / gold crest</option>
+            </select>
+            <label class="stamp-toggle"><input id="include-stamp" type="checkbox"> Add PM stamp</label>
+            <span id="stamp-settings" class="stamp-settings" hidden>
+                <label>Size <select id="stamp-size" aria-label="Stamp size">
+                    <option value="25">Small (25 mm)</option>
+                    <option value="35" selected>Medium (35 mm)</option>
+                    <option value="45">Large (45 mm)</option>
+                </select></label>
+                <label>Position <select id="stamp-position" aria-label="Stamp position">
+                    <option value="left">Left</option>
+                    <option value="center">Centre</option>
+                    <option value="right" selected>Right</option>
+                </select></label>
+            </span>
+            <select aria-label="Document view" id="view">
+                <option value="both">Editor + A4 preview</option>
+                <option value="preview">A4 preview only</option>
+                <option value="editor">Editor only</option>
+            </select>
+            <span aria-live="polite" class="status" id="page-count"></span>
+            <button id="png" type="button">Export PNG pages</button>
+            <button id="save" type="button">Save editable HTML</button>
+            <button class="primary" id="print" type="button">Print / Save PDF</button>
+        </nav>
+        <main class="workspace" id="workspace">
+            <section class="editor-pane">
+                <div class="pane-label">Editable document <span>Changes update the preview</span></div>
+                <article class="paper" id="paper" data-cover="true" data-report="false">
+                    <div class="cabinet-assets" hidden>
+                        <img data-artwork="cabinet-paper" src="assets/cabinet-paper.jpg" alt="">
+                        <img data-artwork="minutes-cover" src="assets/cabinet-minutes-cover.jpg" alt="Cabinet cover">
+                        <img data-artwork="directive-cover" src="assets/cabinet-directive-cover.jpg" alt="Cabinet Clerk cover">
+                    </div>
+                    <header class="masthead decree-only">
+                        <div class="topline">
+                            <span aria-label="Office reference" class="edit inline optional" contenteditable="true" data-placeholder="Office reference" role="textbox"></span>
+                            <span aria-label="Classification" class="classification edit inline" contenteditable="true" data-placeholder="Classification (optional)" role="textbox"></span>
+                        </div>
+                        <img alt="Imperialist Robloxian Federation imperial eagle" class="crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png"/>
+                        <div aria-label="Government name" class="state edit" contenteditable="true" role="textbox">Government of the<br/>Imperialist Robloxian Federation</div>
+                        <div aria-label="Issuing office" class="office edit" contenteditable="true" role="textbox">Office of the Prime Minister</div>
+                        <div class="double-rule"></div>
+                    </header>
+                    <section class="appointment-only appointment-certificate">
+                        <div class="appointment-meta-row">
+                            <img alt="Imperial eagle" class="appointment-crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png"/>
+                            <div class="appointment-meta-item">
+                                <span aria-label="Appointment date heading" class="edit inline" contenteditable="true" data-placeholder="Month Year" role="textbox"></span>
+                            </div>
+                            <div class="appointment-meta-item right">No. <span aria-label="Appointment number" class="edit inline" contenteditable="true" data-placeholder="0001" role="textbox"></span></div>
+                        </div>
+                        <div class="appointment-office">OFFICE OF THE PRIME MINISTER</div>
+                        <h1 aria-label="Appointment title" class="appointment-title edit" contenteditable="true" role="textbox">DECREE OF APPOINTMENT</h1>
+                        <div class="appointment-ornament">✦ ⸻ ✦</div>
+                    </section>
+                    <p class="appointment-lead appointment-only">By the authority vested into the Prime Minister, by the Constitution of the Imperial Robloxian Federation, hereby appoints <span aria-label="Appointee name" class="edit inline strong" contenteditable="true" data-placeholder="Appointee Name" role="textbox"></span> to the position of <span aria-label="Appointed office" class="edit inline strong" contenteditable="true" data-placeholder="Office or Position" role="textbox"></span>.</p>
+                    <div aria-label="Appointment body" aria-multiline="true" class="appointment-body edit appointment-only" contenteditable="true" data-placeholder="Add the formal terms of appointment, duties, expectations and any further clauses here." role="textbox">WHEREAS, the Office of the Prime Minister recognises the importance of effective leadership, responsible governance, and the appointment of qualified individuals to positions of trust and responsibility;
+
+The appointee shall assume the duties, powers, and responsibilities associated with this office in accordance with applicable laws, regulations, policies, and directives. The appointee is expected to uphold the principles of transparency, accountability, impartiality, and public service while carrying out all assigned functions.</div>
+                    <h1 aria-label="Document type" class="doctype edit decree-only" contenteditable="true" role="textbox">DECREE</h1>
+                    <div class="number decree-only">No. <span aria-label="Decree number" class="edit inline" contenteditable="true" data-placeholder="000 / YY" role="textbox"></span></div>
+                    <div class="meta decree-only">
+                        <div>
+                            <strong>Date of issue:</strong>
+                            <span aria-label="Date of issue" class="edit" contenteditable="true" data-placeholder="Day Month Year" role="textbox"></span>
+                        </div>
+                        <div>
+                            <strong>Place of issue:</strong>
+                            <span aria-label="Place of issue" class="edit" contenteditable="true" data-placeholder="City" role="textbox"></span>
+                        </div>
+                        <div>
+                            <strong>Entry into force:</strong>
+                            <span aria-label="Entry into force" class="edit" contenteditable="true" data-placeholder="Day Month Year" role="textbox"></span>
+                        </div>
+                        <div>
+                            <strong>Register No.:</strong>
+                            <span aria-label="Register number" class="edit" contenteditable="true" data-placeholder="Reference" role="textbox"></span>
+                        </div>
+                    </div>
+                    <div class="subject decree-only">
+                        <div aria-label="Decree title" class="edit" contenteditable="true" data-placeholder="On the subject of this decree" role="textbox"></div>
+                    </div>
+                    <div aria-label="Preamble" aria-multiline="true" class="preamble edit decree-only" contenteditable="true" data-placeholder="Enter the preamble, constitutional authority and purpose of the decree here." role="textbox"></div>
+                    <div aria-label="Enacting formula" class="enact edit decree-only" contenteditable="true" role="textbox">HEREBY DECREES:</div>
+                    <section aria-label="Decree articles" class="articles decree-only" id="articles"></section>
+                    <div class="bottom shared-bottom pm-only">
+                        <section class="closing">
+                            <div class="signatures">
+                                <div class="secondary">
+                                    <div aria-label="Countersigning official title" class="sign-role edit" contenteditable="true" data-placeholder="Countersigning official (optional)" role="textbox"></div>
+                                    <div class="sign-line">
+                                        <img alt="Uploaded signature" class="sign-art" hidden=""/>
+                                        <div aria-label="Countersignature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
+                                    </div>
+                                    <div class="signature-tools">
+                                        <button data-sign="upload" type="button">Upload signature</button>
+                                        <button data-sign="remove" type="button">Remove image</button>
+                                        <input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file"/>
+                                    </div>
+                                    <div aria-label="Countersigning official name" class="sign-name edit" contenteditable="true" data-placeholder="Name" role="textbox"></div>
+                                </div>
+                                <div class="primary-signature">
+                                    <div aria-label="Signing official title" class="sign-role edit" contenteditable="true" role="textbox">Prime Minister of the<br/>Imperialist Robloxian Federation</div>
+                                    <div class="sign-line">
+                                        <img alt="Uploaded signature" class="sign-art" hidden=""/>
+                                        <div aria-label="Prime Minister signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
+                                    </div>
+                                    <div class="signature-tools">
+                                        <button data-sign="upload" type="button">Upload signature</button>
+                                        <button data-sign="remove" type="button">Remove image</button>
+                                        <input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file"/>
+                                    </div>
+                                    <div aria-label="Prime Minister name" class="sign-name edit" contenteditable="true" data-placeholder="Name" role="textbox"></div>
+                                </div>
+                            </div>
+                            <div class="document-stamp" hidden><img data-artwork="pm-stamp" src="assets/prime-minister-stamp.png" alt="Office of the Prime Minister stamp"></div>
+                            <footer class="footer">
+                                <span>Archive ref. <span aria-label="Archive reference" class="edit inline" contenteditable="true" data-placeholder="________" role="textbox"></span></span>
+                                <span aria-label="Distribution" class="edit inline" contenteditable="true" data-placeholder="Distribution (optional)" role="textbox"></span>
+                            </footer>
+                        </section>
+                    </div>
+
+                    <header class="cabinet-header minutes-only">
+                        <img class="cabinet-emblem" data-artwork="government-logo" src="assets/government-logo.webp" alt="Government emblem">
+                        <h1>GOVERNMENT OF THE FEDERATION</h1>
+                        <div class="cabinet-office">FEDERAL CABINET</div>
+                        <div class="edit cabinet-document-title" contenteditable="true" role="textbox" aria-label="Meeting title" data-placeholder="">Minutes of the Federal Cabinet Meeting</div>
+                        <div class="edit cabinet-date" contenteditable="true" role="textbox" aria-label="Meeting date" data-placeholder="DAY DD MONTH YYYY"></div>
+                    </header>
+                    <section id="minutes-items" class="minutes-only cabinet-items">
+                        <div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Apologies and Attendance</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Present, absent and apologies." aria-multiline="true"></div></div>
+<div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Introductions</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Record introductions and remarks." aria-multiline="true"></div></div>
+<div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Question and Answer Session</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Record questions, responses and actions." aria-multiline="true"></div></div>
+<div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Natural LARP Improvements</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Record discussion and agreed improvements." aria-multiline="true"></div></div>
+<div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Proposals</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Record motions and decisions below." aria-multiline="true"></div></div>
+                        <div class="proposal-block" id="proposal-block"><table class="cabinet-table"><thead><tr><th>Proposals</th><th>By</th><th>Status</th></tr></thead><tbody id="proposal-rows"><tr><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Proposal" data-placeholder="Motion or proposal" aria-multiline="true"></div></td><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Proposed by" data-placeholder="Name" aria-multiline="true"></div></td><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Vote or status" data-placeholder="Outcome / status" aria-multiline="true"></div></td></tr><tr><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Proposal" data-placeholder="Motion or proposal" aria-multiline="true"></div></td><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Proposed by" data-placeholder="Name" aria-multiline="true"></div></td><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Vote or status" data-placeholder="Outcome / status" aria-multiline="true"></div></td></tr><tr><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Proposal" data-placeholder="Motion or proposal" aria-multiline="true"></div></td><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Proposed by" data-placeholder="Name" aria-multiline="true"></div></td><td><div class="edit proposal-field" contenteditable="true" role="textbox" aria-label="Vote or status" data-placeholder="Outcome / status" aria-multiline="true"></div></td></tr></tbody></table></div>
+                        <div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Any Other Business</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Record additional matters and actions." aria-multiline="true"></div></div>
+<div class="cabinet-item"><div class="cabinet-item-head"><span class="cabinet-item-no"></span><div class="edit cabinet-item-title" contenteditable="true" role="textbox" aria-label="Meeting item heading" data-placeholder="Item heading">Adjournment</div><span>[</span><div class="edit cabinet-item-time" contenteditable="true" role="textbox" aria-label="Item time" data-placeholder="XX:00"></div><span>]</span><button type="button" class="cabinet-remove remove" title="Remove meeting item">×</button></div><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Meeting notes" data-placeholder="Record closing remarks and time of adjournment." aria-multiline="true"></div></div>
+                    </section>
+                    <div class="minutes-only cabinet-signature-block"><section class="cabinet-signature">
+        <div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden><div class="edit " contenteditable="true" role="textbox" aria-label="Clerk signature" data-placeholder="Type signature or upload image"></div></div>
+        <div class="signature-tools"><button type="button" data-sign="upload">Upload signature</button><button type="button" data-sign="remove">Remove image</button><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload clerk signature"></div>
+        <div class="edit cabinet-clerk-name" contenteditable="true" role="textbox" aria-label="Clerk name" data-placeholder="Name of Cabinet Clerk"></div>
+        <div class="edit cabinet-clerk-role" contenteditable="true" role="textbox" aria-label="Clerk title" data-placeholder="">Clerk of the Federal Cabinet</div>
+    </section>
+                        <div class="document-stamp" hidden><img data-artwork="pm-stamp" src="assets/prime-minister-stamp.png" alt="Office of the Prime Minister stamp"></div>
+                    </div>
+                    <header class="cabinet-header directive-only">
+                        <img class="cabinet-emblem clerk-emblem" data-artwork="cabinet-clerk" src="assets/cabinet-clerk.png" alt="Office of the Cabinet Clerk seal">
+                        <h1>OFFICE OF THE CABINET CLERK</h1>
+                        <div class="directive-number">DIRECTIVE <span class="edit inline" contenteditable="true" role="textbox" aria-label="Directive number" data-placeholder="001"></span></div>
+                        <div class="edit cabinet-subject" contenteditable="true" role="textbox" aria-label="Directive subject" data-placeholder="SUBJECT OF THE DIRECTIVE"></div>
+                    </header>
+                    <div class="edit directive-only cabinet-text directive-text" contenteditable="true" role="textbox" aria-label="Directive text" data-placeholder="Enter the directive, instructions and any implementation requirements." aria-multiline="true"></div>
+                    <div class="edit directive-only cabinet-order" contenteditable="true" role="textbox" aria-label="Issuing authority" data-placeholder="">By Order of Government Command.</div>
+                    <div class="directive-only cabinet-signature-block"><section class="cabinet-signature">
+        <div class="sign-line"><img alt="Uploaded signature" class="sign-art" hidden><div class="edit " contenteditable="true" role="textbox" aria-label="Clerk signature" data-placeholder="Type signature or upload image"></div></div>
+        <div class="signature-tools"><button type="button" data-sign="upload">Upload signature</button><button type="button" data-sign="remove">Remove image</button><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload clerk signature"></div>
+        <div class="edit cabinet-clerk-name" contenteditable="true" role="textbox" aria-label="Clerk name" data-placeholder="Name of Cabinet Clerk"></div>
+        <div class="edit cabinet-clerk-role" contenteditable="true" role="textbox" aria-label="Clerk title" data-placeholder="">Clerk to the Federal Cabinet</div>
+    </section>
+                        <div class="document-stamp" hidden><img data-artwork="pm-stamp" src="assets/prime-minister-stamp.png" alt="Office of the Prime Minister stamp"></div>
+                    </div>
+                    <header class="directive-only report-only cabinet-report-header" data-page-break="true">
+                        <h1>MINISTRY OF <span class="edit inline" contenteditable="true" role="textbox" aria-label="Ministry name" data-placeholder="[XXX]"></span></h1>
+                        <div class="cabinet-office">REPORT DATED <span class="edit inline" contenteditable="true" role="textbox" aria-label="Report date" data-placeholder="DD/MM/YYYY"></span></div>
+                        <div class="cabinet-subject">Fortnightly Ministry Report</div>
+                    </header>
+<section class="directive-only report-only report-section"><strong>What has your ministry achieved over the past two weeks?</strong><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="What has your ministry achieved over the past two weeks?" data-placeholder="Provide a brief update on the plans from your previous report." aria-multiline="true"></div></section>
+<section class="directive-only report-only report-section"><strong>Two-Week Action Plan:</strong><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Two-Week Action Plan:" data-placeholder="Explain the main actions you intend to take during the next two weeks." aria-multiline="true"></div></section>
+<section class="directive-only report-only report-section report-stats"><strong>Ministry Personnel Statistics:</strong><table class="cabinet-table"><thead><tr><th>CATEGORY</th><th>CURRENT TOTAL</th></tr></thead><tbody><tr><td>New Members (Last 14 Days)</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="New Members (Last 14 Days)" data-placeholder="Total"></div></td></tr><tr><td>Low Ranking Members</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="Low Ranking Members" data-placeholder="Total"></div></td></tr><tr><td>Non-Commissioned Officers</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="Non-Commissioned Officers" data-placeholder="Total"></div></td></tr><tr><td>Officers</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="Officers" data-placeholder="Total"></div></td></tr><tr><td>NCO’s Enrolled in MoE</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="NCO’s Enrolled in MoE" data-placeholder="Total"></div></td></tr><tr><td>Exiles (Last 14 Days)</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="Exiles (Last 14 Days)" data-placeholder="Total"></div></td></tr><tr><td>Members about to be exiled (on 2 strikes)</td><td><div class="edit " contenteditable="true" role="textbox" aria-label="Members about to be exiled (on 2 strikes)" data-placeholder="Total"></div></td></tr></tbody></table></section>
+<section class="directive-only report-only report-section"><strong>What should Government Command know?</strong><div class="edit cabinet-text" contenteditable="true" role="textbox" aria-label="Government Command notes" data-placeholder="Briefly mention challenges, concerns or support needed." aria-multiline="true"></div></section>
+                </article>
+            </section>
+            <section class="preview-pane">
+                <div class="pane-label">A4 output preview <span>Actual page breaks</span></div>
+                <div class="preview-pages" id="preview-pages"></div>
+            </section>
+        </main>
+        <script id="editor-script" src="editor.js"></script>
+    </body>
+</html>

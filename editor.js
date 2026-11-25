@@ -4,6 +4,18 @@
     const preview = document.getElementById('preview-pages');
     const workspace = document.getElementById('workspace');
     const documentType = document.getElementById('doc-type');
+    const cabinetModes = ['minutes', 'directive'];
+    const documentNames = {
+        decree: "Prime Minister's Decree",
+        appointment: 'Decree of Appointment',
+        minutes: 'Cabinet Minutes',
+        directive: 'Cabinet Directive'
+    };
+    const fileNames = {
+        decree: 'IRF-Decree', appointment: 'IRF-Appointment',
+        minutes: 'IRF-Cabinet-Minutes', directive: 'IRF-Cabinet-Directive'
+    };
+    const isCabinet = () => cabinetModes.includes(documentType.value);
     const sourceScript = document.currentScript;
     const assetStore = document.getElementById('embedded-assets');
     const embeddedAssets = assetStore ? JSON.parse(assetStore.textContent) : {};
@@ -43,6 +55,8 @@
         await assetReady;
         const clone = document.documentElement.cloneNode(true);
         clone.querySelector('#preview-pages').replaceChildren();
+        // A downloaded document is independent of the hosted portal.
+        clone.querySelector('#portal-home')?.remove();
         clone.querySelector('#workspace').classList.remove('preview-only', 'editor-only');
         const stylesheet = document.getElementById('editor-styles');
         if (stylesheet.tagName === 'LINK') {
@@ -64,6 +78,7 @@
             clone.querySelector('#editor-script').replaceWith(inlineScript);
         }
         const artwork = {};
+        clone.querySelector('#paper').style.removeProperty('background-image');
         clone.querySelectorAll('[data-artwork]').forEach(element => {
             const attribute = element.tagName === 'LINK' ? 'href' : 'src';
             artwork[element.dataset.artwork] = element.getAttribute(attribute);
@@ -143,7 +158,17 @@
         content.className = 'page-content';
         const end = document.createElement('div');
         end.className = 'page-end';
-        end.innerHTML = '<span>OFFICE OF THE PRIME MINISTER</span><span></span>';
+        end.innerHTML = '<span></span><span></span>';
+        end.firstElementChild.textContent = isCabinet()
+            ? (documentType.value === 'directive' ? 'OFFICE OF THE CABINET CLERK' : 'FEDERAL CABINET')
+            : 'OFFICE OF THE PRIME MINISTER';
+        if (isCabinet()) {
+            const background = document.createElement('img');
+            background.className = 'cabinet-page-art';
+            background.alt = '';
+            background.src = paper.querySelector('[data-artwork="cabinet-paper"]').src;
+            p.append(background);
+        }
         p.append(content, end);
         wrap.append(caption, p);
         preview.append(wrap);
@@ -162,6 +187,7 @@
             return;
         isRendering = true;
         numberArticles();
+        numberMeetingItems();
         const editor = paper.parentElement;
         const restoreEditor = editor.getAttribute("style");
         if (!editor.getClientRects().length) {
@@ -183,6 +209,11 @@
             currentPage = createPreviewPage();
             pages.push(currentPage);
             return currentPage;
+        }
+        if (isCabinet() && paper.dataset.cover === 'true') {
+            const cover = next();
+            cover.p.classList.add('cabinet-cover');
+            cover.p.querySelector('.cabinet-page-art').src = paper.querySelector(`[data-artwork="${documentType.value}-cover"]`).src;
         }
         next();
         function addBlock(node) {
@@ -248,7 +279,52 @@
         for (const el of paper.children) {
             if (getComputedStyle(el).display === 'none')
                 continue;
-            if (el === articles) {
+            if (el.dataset.pageBreak && currentPage.content.children.length)
+                next();
+            if (el.id === 'minutes-items') {
+                for (const item of el.children) {
+                    if (item.classList.contains('proposal-block')) {
+                        // Repeat the table heading when a proposal table crosses a page.
+                        let table;
+                        function startTable() {
+                            table = cloneForPreview(item.querySelector('table'));
+                            table.tBodies[0].replaceChildren();
+                            currentPage.content.append(table);
+                        }
+                        startTable();
+                        for (const row of item.querySelectorAll('tbody tr')) {
+                            const entry = cloneForPreview(row);
+                            table.tBodies[0].append(entry);
+                            if (!pageHasRoom(currentPage) && (table.tBodies[0].rows.length > 1 || currentPage.content.children.length > 1)) {
+                                entry.remove();
+                                if (!table.tBodies[0].rows.length) table.remove();
+                                next();
+                                startTable();
+                                table.tBodies[0].append(entry);
+                            }
+                        }
+                    } else {
+                        splitText(getEditableText(item.querySelector('.cabinet-text')), (text, continued) => {
+                            const node = cloneForPreview(item);
+                            node.querySelector('.cabinet-text').textContent = text;
+                            if (continued) {
+                                node.querySelector('.cabinet-item-head').remove();
+                                node.classList.add('continued-item');
+                            }
+                            return node;
+                        });
+                    }
+                }
+            }
+            else if (el.classList.contains('report-section') && !el.classList.contains('report-stats')) {
+                splitText(getEditableText(el.querySelector('.cabinet-text')), (text, continued) => {
+                    const node = cloneForPreview(el);
+                    node.querySelector('.cabinet-text').textContent = text;
+                    if (continued) node.querySelector('strong').remove();
+                    return node;
+                });
+            }
+            else if (el === articles) {
                 for (const a of articles.children) {
                     const text = getEditableText(a.querySelector('.article-body'));
                     const make = (t, cont) => {
@@ -280,7 +356,7 @@
                     splitText(text, make);
                 }
             }
-            else if ((el.classList.contains('preamble') || el.classList.contains('appointment-body'))) {
+            else if ((el.classList.contains('preamble') || el.classList.contains('appointment-body') || el.classList.contains('directive-text'))) {
                 splitText(getEditableText(el), (t, cont) => {
                     let n = cloneForPreview(el);
                     n.textContent = t;
@@ -297,7 +373,7 @@
             }
         }
         pages.forEach((x, i) => {
-            x.title.textContent = 'Page ' + (i + 1) + ' of ' + pages.length;
+            x.title.textContent = 'Page ' + (i + 1) + ' of ' + pages.length + (x.p.classList.contains('cabinet-cover') ? ' · Cover' : '');
             x.end.lastElementChild.textContent = 'Page ' + (i + 1) + ' / ' + pages.length;
         });
         byId('page-count').textContent = pages.length + ' A4 ' + (pages.length === 1 ? 'page' : 'pages');
@@ -311,6 +387,62 @@
             editor.setAttribute("style", restoreEditor);
         isRendering = false;
     }
+    const meetingItems = byId('minutes-items');
+    const proposalRows = byId('proposal-rows');
+    const meetingItemTemplate = meetingItems.querySelector('.cabinet-item').cloneNode(true);
+    const proposalTemplate = proposalRows.firstElementChild.cloneNode(true);
+
+    function numberMeetingItems() {
+        [...meetingItems.querySelectorAll('.cabinet-item')].forEach((item, index) => {
+            item.querySelector('.cabinet-item-no').textContent = String(index + 1).padStart(2, '0');
+        });
+    }
+
+    function blankCopy(template) {
+        const item = template.cloneNode(true);
+        item.querySelectorAll('.edit').forEach(field => field.textContent = '');
+        return item;
+    }
+
+    byId('add-minute').onclick = () => {
+        const item = blankCopy(meetingItemTemplate);
+        item.querySelector('.cabinet-text').dataset.placeholder = 'Record discussion, decisions and actions.';
+        meetingItems.append(item);
+        numberMeetingItems();
+        item.querySelector('.cabinet-item-title').focus();
+        schedulePreview();
+    };
+    meetingItems.addEventListener('click', event => {
+        const button = event.target.closest('.cabinet-remove');
+        if (!button) return;
+        const item = button.closest('.cabinet-item');
+        if (meetingItems.querySelectorAll('.cabinet-item').length === 1) {
+            alert('Keep at least one meeting item.');
+            return;
+        }
+        if (confirm('Remove this meeting item?')) {
+            item.remove();
+            numberMeetingItems();
+            schedulePreview();
+        }
+    });
+    byId('add-proposal').onclick = () => {
+        proposalRows.append(blankCopy(proposalTemplate));
+        schedulePreview();
+    };
+    byId('remove-proposal').onclick = () => {
+        if (proposalRows.rows.length > 1 && confirm('Remove the last proposal row?')) {
+            proposalRows.lastElementChild.remove();
+            schedulePreview();
+        }
+    };
+    byId('include-cover').checked = paper.dataset.cover === 'true';
+    byId('include-report').checked = paper.dataset.report === 'true';
+    byId('include-report').onchange = event => {
+        paper.dataset.report = String(event.target.checked);
+        schedulePreview();
+    };
+
     byId('add').onclick = () => addArticle(true);
     articles.addEventListener('click', e => {
         if (e.target.classList.contains('remove')) {
@@ -395,10 +527,10 @@
             return;
         e.preventDefault();
         const t = e.clipboardData.getData('text/plain');
-        document.execCommand('insertText', false, ed.matches('.article-body,.preamble,.appointment-body') ? t : t.replace(/\r?\n/g, ' '));
+        document.execCommand('insertText', false, ed.matches('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field') ? t : t.replace(/\r?\n/g, ' '));
     });
     paper.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && e.target.closest('.edit') && !e.target.closest('.article-body,.preamble,.appointment-body'))
+        if (e.key === 'Enter' && e.target.closest('.edit') && !e.target.closest('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field'))
             e.preventDefault();
     });
     paper.addEventListener('focusout', e => {
@@ -418,10 +550,15 @@
         setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
     // File exports
-    byId('print').onclick = () => {
+    byId('print').onclick = async () => {
         document.activeElement.blur();
-        renderPreview();
-        window.print();
+        try {
+            await assetReady;
+            renderPreview();
+            window.print();
+        } catch (error) {
+            alert('Could not load the document artwork. ' + error.message);
+        }
     };
     window.addEventListener('beforeprint', renderPreview);
     byId('save').onclick = async () => {
@@ -429,7 +566,7 @@
         renderPreview();
         try {
             const html = await makePortableCopy();
-            const filename = documentType.value === 'appointment' ? 'IRF-Decree-of-Appointment.html' : 'IRF-Prime-Minister-Decree.html';
+            const filename = fileNames[documentType.value] + '.html';
             download(new Blob([html], { type: 'text/html;charset=utf-8' }), filename);
         }
         catch (error) {
@@ -484,64 +621,186 @@
             const b = await new Promise(ok => c.toBlob(ok, 'image/png'));
             if (!b)
                 throw Error('PNG encoding failed');
-            download(b, (documentType.value === 'appointment' ? 'IRF-Appointment-page-' : 'IRF-Decree-page-') + n + '.png');
+            download(b, (fileNames[documentType.value] + '-page-') + String(n).padStart(Math.max(2, String(preview.children.length).length), '0') + '.png');
         }
         catch (e) {
             alert('PNG export failed in this browser. Try Chrome or Edge, or use Print / Save PDF. ' + e.message);
         }
     }
-    byId('png').onclick = async () => {
+    // PNG files are already compressed, so the ZIP can store them as-is.
+    // Use one download for a multi-page document to avoid browser download blocks.
+    function crc32(bytes) {
+        let crc = 0xffffffff;
+        for (const byte of bytes) {
+            crc ^= byte;
+            for (let bit = 0; bit < 8; bit++)
+                crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+        }
+        return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    async function zipPages(files) {
+        const localParts = [];
+        const directory = [];
+        let offset = 0;
+        let directorySize = 0;
+        const encoder = new TextEncoder();
+        for (const file of files) {
+            const name = encoder.encode(file.name);
+            const bytes = new Uint8Array(await file.blob.arrayBuffer());
+            const checksum = crc32(bytes);
+            const local = new DataView(new ArrayBuffer(30));
+            local.setUint32(0, 0x04034b50, true);
+            local.setUint16(4, 20, true);
+            local.setUint16(12, 0x21, true); // 1 January 1980, valid DOS date
+            local.setUint32(14, checksum, true);
+            local.setUint32(18, bytes.length, true);
+            local.setUint32(22, bytes.length, true);
+            local.setUint16(26, name.length, true);
+            localParts.push(local.buffer, name, bytes);
+
+            const entry = new DataView(new ArrayBuffer(46));
+            entry.setUint32(0, 0x02014b50, true);
+            entry.setUint16(4, 20, true);
+            entry.setUint16(6, 20, true);
+            entry.setUint16(14, 0x21, true);
+            entry.setUint32(16, checksum, true);
+            entry.setUint32(20, bytes.length, true);
+            entry.setUint32(24, bytes.length, true);
+            entry.setUint16(28, name.length, true);
+            entry.setUint32(42, offset, true);
+            directory.push(entry.buffer, name);
+            directorySize += 46 + name.length;
+            offset += 30 + name.length + bytes.length;
+        }
+        const end = new DataView(new ArrayBuffer(22));
+        end.setUint32(0, 0x06054b50, true);
+        end.setUint16(8, files.length, true);
+        end.setUint16(10, files.length, true);
+        end.setUint32(12, directorySize, true);
+        end.setUint32(16, offset, true);
+        return new Blob([...localParts, ...directory, end.buffer], { type: 'application/zip' });
+    }
+
+    async function exportAllPages() {
+        const button = byId('png');
         document.activeElement.blur();
-        renderPreview();
-        const was = workspace.classList.contains('editor-only');
-        if (was)
+        const wasEditorOnly = workspace.classList.contains('editor-only');
+        if (wasEditorOnly)
             workspace.classList.remove('editor-only');
-        let btn = byId('png');
-        btn.disabled = true;
-        btn.textContent = 'Exporting…';
+        button.disabled = true;
         try {
             await assetReady;
-            let ps = [...preview.querySelectorAll('.preview-page')];
-            if (ps.length > 12)
-                throw Error('For more than 12 pages, use the individual page PNG buttons.');
-            let combined = document.createElement('canvas');
-            combined.width = 1588;
-            combined.height = 2246 * ps.length;
-            let ctx = combined.getContext('2d');
-            for (let i = 0; i < ps.length; i++)
-                ctx.drawImage(await rasterisePage(ps[i]), 0, 2246 * i);
-            const blob = await new Promise(ok => combined.toBlob(ok, 'image/png'));
-            if (!blob)
-                throw Error('PNG encoding failed');
-            download(blob, documentType.value === 'appointment' ? 'IRF-Decree-of-Appointment.png' : 'IRF-Decree.png');
+            renderPreview();
+            const pages = [...preview.querySelectorAll('.preview-page')];
+            const prefix = fileNames[documentType.value];
+            const digits = Math.max(2, String(pages.length).length);
+            const files = [];
+            for (let i = 0; i < pages.length; i++) {
+                button.textContent = `Exporting ${i + 1} / ${pages.length}…`;
+                const canvas = await rasterisePage(pages[i]);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (!blob)
+                    throw new Error('Could not encode page ' + (i + 1));
+                const number = String(i + 1).padStart(digits, '0');
+                files.push({ name: `${prefix}-page-${number}.png`, blob });
+            }
+            if (files.length === 1)
+                download(files[0].blob, files[0].name);
+            else
+                download(await zipPages(files), `${prefix}-PNG-Pages.zip`);
         }
-        catch (e) {
-            alert('PNG export could not complete. ' + e.message + ' Try individual page PNG buttons or Print / Save PDF.');
+        catch (error) {
+            alert('PNG export could not complete. ' + error.message + ' Try the individual page PNG buttons or Print / Save PDF.');
         }
         finally {
-            btn.disabled = false;
-            btn.textContent = 'Export PNG';
-            if (was)
+            button.disabled = false;
+            button.textContent = 'Export PNG pages';
+            if (wasEditorOnly)
                 workspace.classList.add('editor-only');
         }
-    };
-    documentType.value = paper.classList.contains('mode-appointment') ? 'appointment' : 'decree';
+    }
+    byId('png').onclick = exportAllPages;
+    documentType.value = paper.dataset.documentType || (paper.classList.contains('mode-appointment') ? 'appointment' : 'decree');
+
+    // Each template remembers its own stamp settings in saved documents.
+    const stampToggle = byId('include-stamp');
+    const stampSize = byId('stamp-size');
+    const stampPosition = byId('stamp-position');
+    const stampSettings = JSON.parse(paper.dataset.stampSettings || '{}');
+
+    function applyStampSettings() {
+        const settings = stampSettings[documentType.value] || {};
+        stampToggle.checked = settings.enabled === true;
+        stampSize.value = ['25', '35', '45'].includes(settings.size) ? settings.size : '35';
+        stampPosition.value = ['left', 'center', 'right'].includes(settings.position) ? settings.position : 'right';
+        byId('stamp-settings').hidden = !stampToggle.checked;
+        const alignment = { left: 'flex-start', center: 'center', right: 'flex-end' };
+        for (const stamp of paper.querySelectorAll('.document-stamp')) {
+            stamp.hidden = !stampToggle.checked;
+            stamp.style.justifyContent = alignment[stampPosition.value];
+            stamp.querySelector('img').style.width = stampSize.value + 'mm';
+        }
+    }
+
+    function saveStampSettings() {
+        stampSettings[documentType.value] = {
+            enabled: stampToggle.checked,
+            size: stampSize.value,
+            position: stampPosition.value
+        };
+        paper.dataset.stampSettings = JSON.stringify(stampSettings);
+        applyStampSettings();
+        schedulePreview();
+    }
+
+    stampToggle.addEventListener('change', saveStampSettings);
+    stampSize.addEventListener('change', saveStampSettings);
+    stampPosition.addEventListener('change', saveStampSettings);
 
     function updateDocumentType() {
-        const appointment = documentType.value === 'appointment';
-        paper.classList.toggle('mode-appointment', appointment);
-        byId('add').style.display = appointment ? 'none' : '';
-        byId('signature').style.display = appointment ? 'none' : '';
-        byId('classification').style.display = appointment ? 'none' : '';
-        document.title = appointment ? 'Decree of Appointment | Imperialist Robloxian Federation' : "Prime Minister's Decree | Imperialist Robloxian Federation";
-        const brand = byId('brand-title');
-        if (brand)
-            brand.textContent = appointment ? 'IRF Appointment & Decree Editor' : 'IRF Document Editor';
+        const type = documentType.value;
+        const cabinet = isCabinet();
+        paper.dataset.documentType = type;
+        for (const mode of ['appointment', ...cabinetModes])
+            paper.classList.toggle('mode-' + mode, type === mode);
+        paper.classList.toggle('mode-cabinet', cabinet);
+        for (const id of ['add', 'signature', 'classification'])
+            byId(id).style.display = type === 'decree' ? '' : 'none';
+        for (const id of ['add-minute', 'add-proposal', 'remove-proposal'])
+            byId(id).hidden = type !== 'minutes';
+        paper.dataset.cover = cabinet ? 'true' : 'false';
+        byId('include-cover').checked = cabinet;
+        byId('include-cover').disabled = true;
+        byId('cover-control').hidden = !cabinet;
+        byId('report-control').hidden = type !== 'directive';
+        appearance.style.display = cabinet ? 'none' : '';
+        if (cabinet) {
+            const image = paper.querySelector('[data-artwork="cabinet-paper"]');
+            paper.style.backgroundImage = `url("${image.src}")`;
+        } else {
+            paper.style.removeProperty('background-image');
+        }
+        document.title = documentNames[type] + ' | Imperialist Robloxian Federation';
+        byId('brand-title').textContent = 'IRF Document Editor';
+        applyStampSettings();
         schedulePreview();
+    }
+    // The portal opens the selected template directly. Saved offline copies
+    // continue to use the document type recorded in their markup.
+    const homeLink = byId('portal-home');
+    if (homeLink) {
+        const requestedType = new URLSearchParams(window.location.search).get('type');
+        if (Object.hasOwn(documentNames, requestedType))
+            documentType.value = requestedType;
+        homeLink.addEventListener('click', event => {
+            if (!confirm('Return to the portal? Save your document first if you want to keep your changes.'))
+                event.preventDefault();
+        });
     }
     documentType.onchange = updateDocumentType;
     updateDocumentType();
     renderPreview();
-    assetReady.then(renderPreview).catch(error => console.error('Artwork:', error));
+    assetReady.then(() => { updateDocumentType(); renderPreview(); }).catch(error => console.error('Artwork:', error));
     window.addEventListener('resize', schedulePreview);
 })();

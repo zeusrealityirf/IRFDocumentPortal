@@ -1038,3 +1038,102 @@ body {
         background-repeat: no-repeat!important;
     }
 }
+
+/* Navigation back to the document portal. */
+.toolbar .portal-home {
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 8px 11px;
+    border: 1px solid #74746c;
+    border-radius: 5px;
+}
+.toolbar .portal-home:hover { background: #45463d; }
+.toolbar .portal-home:focus-visible { outline: 2px solid #cfb47b; outline-offset: 2px; }
+
+/* Federal Cabinet stationery, taken from the supplied Cabinet documents. */
+[hidden] { display: none !important; }
+.minutes-only, .directive-only { display: none; }
+.paper.mode-minutes .minutes-only,
+.paper.mode-directive .directive-only { display: block; }
+.paper.mode-cabinet .decree-only,
+.paper.mode-cabinet .appointment-only,
+.paper.mode-cabinet .pm-only,
+.paper.mode-cabinet .report-only { display: none !important; }
+.paper.mode-directive[data-report="true"] .report-only { display: block !important; }
+/* The preview receives only the enabled report sections. */
+.preview-page.paper.mode-directive .report-only { display: block !important; }
+.cabinet-control { display: flex; gap: 5px; align-items: center; font-size: 13px; }
+.paper.mode-cabinet, .preview-page.paper.mode-cabinet {
+    --paper: #f5efdf;
+    --rule: #938a77;
+    color: #171612;
+    font-family: 'Times New Roman', Georgia, serif;
+    font-size: 12pt;
+    line-height: 1.3;
+    padding: 24mm 24mm 15mm 25mm;
+    background-size: 100% 297mm;
+    background-repeat: repeat-y;
+}
+.paper.mode-cabinet > .cabinet-assets { display: none !important; }
+.cabinet-page-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; z-index: 0; pointer-events: none; }
+.mode-cabinet .page-content, .mode-cabinet .page-end { position: relative; z-index: 1; }
+.mode-cabinet .page-end { font-size: 9pt; color: #686155; }
+.mode-cabinet.cabinet-cover .page-content, .mode-cabinet.cabinet-cover .page-end { display: none; }
+.cabinet-header { text-align: center; border-bottom: 1px solid var(--rule); padding-bottom: 6mm; margin-bottom: 9mm; }
+.cabinet-emblem { display: block; width: 40mm; height: 40mm; object-fit: contain; margin: 0 auto 5mm; }
+.clerk-emblem { width: 45mm; height: 45mm; }
+.cabinet-header h1, .cabinet-report-header h1 { font-size: 21pt; line-height: 1.15; margin: 0 0 1mm; font-weight: bold; }
+.cabinet-office, .directive-number, .cabinet-document-title { font-size: 17pt; line-height: 1.2; }
+.cabinet-date { font-weight: bold; font-size: 16pt; line-height: 1.2; }
+.cabinet-subject { font-style: italic; font-size: 13pt; margin-top: 1mm; }
+.cabinet-item { position: relative; margin: 0 0 5mm; }
+.cabinet-item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px; font-weight: bold; margin-bottom: 2mm; }
+.cabinet-item-title { flex: 0 1 auto; }
+.cabinet-item-time { min-width: 10mm; }
+.cabinet-text { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.3em; margin: 0 0 3mm; }
+.cabinet-item .cabinet-text { margin-bottom: 0; }
+.cabinet-remove { right: -13mm; }
+.cabinet-table { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 11.5pt; margin: 0 0 5mm; }
+.cabinet-table th { background: #a90000; color: white; font-weight: bold; text-align: center; }
+.cabinet-table th, .cabinet-table td { border: 1px solid #29241d; padding: 2mm; vertical-align: top; overflow-wrap: anywhere; }
+.cabinet-table td { background: #fff8; }
+.proposal-field { min-height: 1.3em; white-space: pre-wrap; }
+.cabinet-order { font-weight: bold; margin: 3mm 0; }
+.cabinet-signature-block { margin-top: 6mm; }
+.cabinet-signature { width: 75mm; text-align: left; }
+.cabinet-signature .sign-line { margin: 0; border: 0; }
+.cabinet-signature .sign-art { height: 16mm; object-position: left bottom; }
+.cabinet-clerk-name { font-weight: bold; }
+.cabinet-clerk-role { font-style: italic; }
+.cabinet-report-header { text-align: center; border-bottom: 1px solid var(--rule); margin: 8mm 0 3mm; padding-bottom: 5mm; }
+.preview-page .cabinet-report-header { margin-top: 0; }
+.report-section { margin-bottom: 3mm; }
+.report-section > strong { display: block; margin-bottom: 2mm; }
+.report-stats .cabinet-table th:first-child { width: 72%; }
+.report-stats .cabinet-table td { background: white; }
+@media print {
+    .preview-page.paper.mode-cabinet { padding: 24mm 24mm 15mm 25mm !important; background-image: none !important; }
+    .cabinet-table th { print-color-adjust: exact; }
+}
+
+/* Official stamp, positioned in the signing block so it cannot overlap text. */
+.stamp-toggle, .stamp-settings, .stamp-settings label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.document-stamp {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 3mm;
+    break-inside: avoid;
+}
+.document-stamp img {
+    display: block;
+    width: 35mm;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+}

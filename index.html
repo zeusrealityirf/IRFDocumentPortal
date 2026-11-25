@@ -1,141 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8"/>
-        <meta content="width=device-width,initial-scale=1" name="viewport"/>
-        <title>IRF Government Document Editor</title>
-        <link href="styles.css" id="editor-styles" rel="stylesheet"/>
-        <link data-artwork="government-logo" href="assets/government-logo.webp" rel="icon"/>
-    </head>
-    <body>
-        <nav aria-label="Document editing tools" class="toolbar">
-            <span class="brand">
-                <img alt="IRF Government logo" class="toolbar-logo" data-artwork="government-logo" src="assets/government-logo.webp"/>
-                <span id="brand-title">IRF Document Editor</span>
-            </span>
-            <span class="hint">Click the document to edit · grey text is a placeholder</span>
-            <button id="add" type="button">+ Article</button>
-            <button id="signature" type="button">Toggle second signature</button>
-            <button id="classification" type="button">Toggle classification</button>
-            <select aria-label="Document type" id="doc-type">
-                <option selected="" value="decree">Prime Minister's Decree</option>
-                <option value="appointment">Decree of Appointment</option>
-            </select>
-            <select aria-label="Paper and crest appearance" id="appearance">
-                <option value="archive">Ivory / monochrome</option>
-                <option value="gold">Ivory / gold crest</option>
-                <option value="clean">White / monochrome</option>
-                <option value="clean gold">White / gold crest</option>
-            </select>
-            <select aria-label="Document view" id="view">
-                <option value="both">Editor + A4 preview</option>
-                <option value="preview">A4 preview only</option>
-                <option value="editor">Editor only</option>
-            </select>
-            <span aria-live="polite" class="status" id="page-count"></span>
-            <button id="png" type="button">Export PNG</button>
-            <button id="save" type="button">Save editable HTML</button>
-            <button class="primary" id="print" type="button">Print / Save PDF</button>
-        </nav>
-        <main class="workspace" id="workspace">
-            <section class="editor-pane">
-                <div class="pane-label">Editable document <span>Changes update the preview</span></div>
-                <article class="paper" id="paper">
-                    <header class="masthead decree-only">
-                        <div class="topline">
-                            <span aria-label="Office reference" class="edit inline optional" contenteditable="true" data-placeholder="Office reference" role="textbox"></span>
-                            <span aria-label="Classification" class="classification edit inline" contenteditable="true" data-placeholder="Classification (optional)" role="textbox"></span>
-                        </div>
-                        <img alt="Imperialist Robloxian Federation imperial eagle" class="crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png"/>
-                        <div aria-label="Government name" class="state edit" contenteditable="true" role="textbox">Government of the<br/>Imperialist Robloxian Federation</div>
-                        <div aria-label="Issuing office" class="office edit" contenteditable="true" role="textbox">Office of the Prime Minister</div>
-                        <div class="double-rule"></div>
-                    </header>
-                    <section class="appointment-only appointment-certificate">
-                        <div class="appointment-meta-row">
-                            <img alt="Imperial eagle" class="appointment-crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png"/>
-                            <div class="appointment-meta-item">
-                                <span aria-label="Appointment date heading" class="edit inline" contenteditable="true" data-placeholder="Month Year" role="textbox"></span>
-                            </div>
-                            <div class="appointment-meta-item right">No. <span aria-label="Appointment number" class="edit inline" contenteditable="true" data-placeholder="0001" role="textbox"></span></div>
-                        </div>
-                        <div class="appointment-office">OFFICE OF THE PRIME MINISTER</div>
-                        <h1 aria-label="Appointment title" class="appointment-title edit" contenteditable="true" role="textbox">DECREE OF APPOINTMENT</h1>
-                        <div class="appointment-ornament">✦ ⸻ ✦</div>
-                    </section>
-                    <p class="appointment-lead appointment-only">By the authority vested into the Prime Minister, by the Constitution of the Imperial Robloxian Federation, hereby appoints <span aria-label="Appointee name" class="edit inline strong" contenteditable="true" data-placeholder="Appointee Name" role="textbox"></span> to the position of <span aria-label="Appointed office" class="edit inline strong" contenteditable="true" data-placeholder="Office or Position" role="textbox"></span>.</p>
-                    <div aria-label="Appointment body" aria-multiline="true" class="appointment-body edit appointment-only" contenteditable="true" data-placeholder="Add the formal terms of appointment, duties, expectations and any further clauses here." role="textbox">WHEREAS, the Office of the Prime Minister recognises the importance of effective leadership, responsible governance, and the appointment of qualified individuals to positions of trust and responsibility;
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#17291f">
+    <title>Government Document Portal | Imperialist Robloxian Federation</title>
+    <link rel="icon" href="assets/government-logo.webp">
+    <link rel="stylesheet" href="portal.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="identity" href="index.html">
+                <img src="assets/government-logo.webp" alt="Government emblem">
+                <span>Imperialist Robloxian Federation<small>Office of the Prime Minister</small></span>
+            </a>
+            <span class="header-label">Government document service</span>
+        </div>
+    </header>
 
-The appointee shall assume the duties, powers, and responsibilities associated with this office in accordance with applicable laws, regulations, policies, and directives. The appointee is expected to uphold the principles of transparency, accountability, impartiality, and public service while carrying out all assigned functions.</div>
-                    <h1 aria-label="Document type" class="doctype edit decree-only" contenteditable="true" role="textbox">DECREE</h1>
-                    <div class="number decree-only">No. <span aria-label="Decree number" class="edit inline" contenteditable="true" data-placeholder="000 / YY" role="textbox"></span></div>
-                    <div class="meta decree-only">
-                        <div>
-                            <strong>Date of issue:</strong>
-                            <span aria-label="Date of issue" class="edit" contenteditable="true" data-placeholder="Day Month Year" role="textbox"></span>
-                        </div>
-                        <div>
-                            <strong>Place of issue:</strong>
-                            <span aria-label="Place of issue" class="edit" contenteditable="true" data-placeholder="City" role="textbox"></span>
-                        </div>
-                        <div>
-                            <strong>Entry into force:</strong>
-                            <span aria-label="Entry into force" class="edit" contenteditable="true" data-placeholder="Day Month Year" role="textbox"></span>
-                        </div>
-                        <div>
-                            <strong>Register No.:</strong>
-                            <span aria-label="Register number" class="edit" contenteditable="true" data-placeholder="Reference" role="textbox"></span>
+    <main class="portal">
+        <section class="intro" aria-labelledby="page-title">
+            <div class="seal"><img src="assets/imperial-eagle.png" alt="Imperial double-headed eagle"></div>
+            <p class="eyebrow">Office of the Prime Minister</p>
+            <h1 id="page-title">Government<br>Document Portal</h1>
+            <div class="ornament" aria-hidden="true"><span></span>◆<span></span></div>
+            <p class="intro-copy">Prepare, edit and issue government documents using the standard document templates of the Imperialist Robloxian Federation.</p>
+        </section>
+
+        <section class="templates" aria-labelledby="templates-title">
+            <div class="section-heading">
+                <h2 id="templates-title">Select a document</h2>
+                <span>01 — 04</span>
+            </div>
+            <div class="template-grid">
+                <a class="template-card" href="editor.html?type=decree">
+                    <div class="thumbnail decree-thumbnail" aria-hidden="true">
+                        <div class="mini-paper">
+                            <img src="assets/imperial-eagle.png" alt="">
+                            <div class="mini-office">OFFICE OF THE PRIME MINISTER</div>
+                            <div class="mini-rule"></div>
+                            <strong>DECREE</strong>
+                            <div class="mini-number">No. ———</div>
+                            <div class="mini-lines"></div>
+                            <div class="mini-lines short"></div>
+                            <div class="mini-lines"></div>
+                            <div class="mini-signature"></div>
                         </div>
                     </div>
-                    <div class="subject decree-only">
-                        <div aria-label="Decree title" class="edit" contenteditable="true" data-placeholder="On the subject of this decree" role="textbox"></div>
+                    <div class="card-info">
+                        <span class="category">01 / Executive instrument</span>
+                        <h3>Prime Minister's Decree</h3>
+                        <p>Draft executive directives, regulations and formal orders with numbered articles.</p>
+                        <span class="card-action">Open decree editor <span aria-hidden="true">→</span></span>
                     </div>
-                    <div aria-label="Preamble" aria-multiline="true" class="preamble edit decree-only" contenteditable="true" data-placeholder="Enter the preamble, constitutional authority and purpose of the decree here." role="textbox"></div>
-                    <div aria-label="Enacting formula" class="enact edit decree-only" contenteditable="true" role="textbox">HEREBY DECREES:</div>
-                    <section aria-label="Decree articles" class="articles decree-only" id="articles"></section>
-                    <div class="bottom shared-bottom">
-                        <section class="closing">
-                            <div class="signatures">
-                                <div class="secondary">
-                                    <div aria-label="Countersigning official title" class="sign-role edit" contenteditable="true" data-placeholder="Countersigning official (optional)" role="textbox"></div>
-                                    <div class="sign-line">
-                                        <img alt="Uploaded signature" class="sign-art" hidden=""/>
-                                        <div aria-label="Countersignature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
-                                    </div>
-                                    <div class="signature-tools">
-                                        <button data-sign="upload" type="button">Upload signature</button>
-                                        <button data-sign="remove" type="button">Remove image</button>
-                                        <input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file"/>
-                                    </div>
-                                    <div aria-label="Countersigning official name" class="sign-name edit" contenteditable="true" data-placeholder="Name" role="textbox"></div>
-                                </div>
-                                <div class="primary-signature">
-                                    <div aria-label="Signing official title" class="sign-role edit" contenteditable="true" role="textbox">Prime Minister of the<br/>Imperialist Robloxian Federation</div>
-                                    <div class="sign-line">
-                                        <img alt="Uploaded signature" class="sign-art" hidden=""/>
-                                        <div aria-label="Prime Minister signature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
-                                    </div>
-                                    <div class="signature-tools">
-                                        <button data-sign="upload" type="button">Upload signature</button>
-                                        <button data-sign="remove" type="button">Remove image</button>
-                                        <input accept="image/png,image/jpeg,image/webp" aria-label="Upload signature image" type="file"/>
-                                    </div>
-                                    <div aria-label="Prime Minister name" class="sign-name edit" contenteditable="true" data-placeholder="Name" role="textbox"></div>
-                                </div>
-                            </div>
-                            <footer class="footer">
-                                <span>Archive ref. <span aria-label="Archive reference" class="edit inline" contenteditable="true" data-placeholder="________" role="textbox"></span></span>
-                                <span aria-label="Distribution" class="edit inline" contenteditable="true" data-placeholder="Distribution (optional)" role="textbox"></span>
-                            </footer>
-                        </section>
+                </a>
+                <a class="template-card" href="editor.html?type=appointment">
+                    <div class="thumbnail appointment-thumbnail" aria-hidden="true">
+                        <div class="mini-paper certificate">
+                            <img src="assets/imperial-eagle.png" alt="">
+                            <div class="mini-office">OFFICE OF THE PRIME MINISTER</div>
+                            <strong>DECREE OF<br>APPOINTMENT</strong>
+                            <div class="mini-ornament">— ◆ —</div>
+                            <div class="mini-lines"></div>
+                            <div class="mini-lines"></div>
+                            <div class="mini-lines short"></div>
+                            <div class="mini-signature"></div>
+                        </div>
                     </div>
-                </article>
-            </section>
-            <section class="preview-pane">
-                <div class="pane-label">A4 output preview <span>Actual page breaks</span></div>
-                <div class="preview-pages" id="preview-pages"></div>
-            </section>
-        </main>
-        <script id="editor-script" src="editor.js"></script>
-    </body>
+                    <div class="card-info">
+                        <span class="category">02 / Personnel instrument</span>
+                        <h3>Decree of Appointment</h3>
+                        <p>Prepare a formal appointment certificate for an individual taking office.</p>
+                        <span class="card-action">Open appointment editor <span aria-hidden="true">→</span></span>
+                    </div>
+                </a>
+                <a class="template-card" href="editor.html?type=minutes">
+                    <div class="thumbnail cabinet-thumbnail" aria-hidden="true">
+                        <div class="mini-paper cabinet-mini"><img src="assets/government-logo.webp" alt=""><div class="mini-office">FEDERAL CABINET</div><strong>CABINET MINUTES</strong><div class="mini-rule"></div><div class="mini-lines"></div><div class="mini-lines short"></div><div class="mini-lines"></div><div class="mini-signature"></div></div>
+                    </div>
+                    <div class="card-info"><span class="category">03 / Cabinet proceedings</span><h3>Cabinet Minutes</h3><p>Record attendance, meeting discussions, proposals, voting outcomes and decisions.</p><span class="card-action">Open editor <span aria-hidden="true">→</span></span></div>
+                </a>
+                <a class="template-card" href="editor.html?type=directive">
+                    <div class="thumbnail cabinet-thumbnail" aria-hidden="true">
+                        <div class="mini-paper cabinet-mini"><img src="assets/cabinet-clerk.png" alt=""><div class="mini-office">OFFICE OF THE CABINET CLERK</div><strong>CABINET DIRECTIVE</strong><div class="mini-rule"></div><div class="mini-lines"></div><div class="mini-lines short"></div><div class="mini-lines"></div><div class="mini-signature"></div></div>
+                    </div>
+                    <div class="card-info"><span class="category">04 / Cabinet instrument</span><h3>Cabinet Directive</h3><p>Issue instructions from the Office of the Cabinet Clerk, with an optional reporting addendum.</p><span class="card-action">Open editor <span aria-hidden="true">→</span></span></div>
+                </a>
+            </div>
+        </section>
+
+        <aside class="service-note">
+            <div><strong>Document preparation</strong><p>Live A4 preview · Signature uploads · PDF and individual PNG pages</p></div>
+            <div><strong>Local editing</strong><p>Your document text and signature images remain in your browser. Save your work before leaving.</p></div>
+        </aside>
+    </main>
+    <footer class="site-footer">
+        <span>Government of the Imperialist Robloxian Federation</span>
+        <span>Office of the Prime Minister · Document service</span>
+    </footer>
+</body>
 </html>
