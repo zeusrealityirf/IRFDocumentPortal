@@ -47,4 +47,13 @@ A `.nojekyll` file is not required for this static site.
 
 ## Repair release
 
-Upload all files together. This release uses fresh `editor-v3.js`, `styles-v3.css` and `portal-v3.css` filenames to avoid mixing cached releases. The exporter selects content by document type rather than relying on CSS visibility. Keep the `assets` directory. Old `editor.js`, `styles.css` and `portal.css` may be removed once the updated files are deployed.
+Upload all files together. This release uses fresh `editor-v4.js`, `styles-v4.css` and `portal-v4.css` filenames to avoid mixing cached releases. The exporter selects content by document type rather than relying on CSS visibility. Keep the `assets` directory. Old `editor.js`, `styles.css` and `portal.css` may be removed once the updated files are deployed.
+
+## Editorial interface
+
+The entrance page and editor use a warm ivory and deep green editorial palette. Controls are grouped in a sidebar, with export actions in the header. Screen-only sheet scaling keeps the A4 document geometry unchanged. Google Fonts supply Libre Baskerville and DM Sans when online; system and serif fallbacks are available offline.
+
+
+## Latest UI adjustment
+
+The Cabinet Minutes and Cabinet Directive cards on the entrance page have been given more vertical space and internal padding so their cover thumbnails do not feel cramped, especially on smaller screens.

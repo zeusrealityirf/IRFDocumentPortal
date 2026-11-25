@@ -179,7 +179,9 @@
     }
 
     function pageHasRoom(currentPage) {
-        return currentPage.content.getBoundingClientRect().bottom <= currentPage.end.getBoundingClientRect().top - 8 && currentPage.end.getBoundingClientRect().bottom <= currentPage.p.getBoundingClientRect().bottom - 40;
+        const scale = currentPage.p.getBoundingClientRect().width / currentPage.p.offsetWidth || 1;
+        return currentPage.content.getBoundingClientRect().bottom <= currentPage.end.getBoundingClientRect().top - 8 * scale
+            && currentPage.end.getBoundingClientRect().bottom <= currentPage.p.getBoundingClientRect().bottom - 40 * scale;
     }
     // Measure on actual A4-width output, not guessed character counts. Split long editable text at word boundaries, or characters for unbroken strings.
 
@@ -200,11 +202,29 @@
         for (const section of paper.children) section.hidden = !belongsToDocument(section);
     }
 
+    // Fit the screen representation to the available workspace. The A4 sheet
+    // still measures 210 × 297 mm at export time.
+    function fitSheets() {
+        const style = getComputedStyle(workspace);
+        const available = workspace.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        const split = !workspace.classList.contains('editor-only') && !workspace.classList.contains('preview-only')
+            && window.innerWidth > 1120;
+        const width = split ? (available - 20) / 2 : available;
+        const previewScale = Math.min(1, Math.max(.2, width / (210 * 96 / 25.4)));
+        // Keep editing legible on narrow screens; the source sheet can scroll.
+        const editorScale = split ? previewScale : Math.min(1, Math.max(.76, previewScale));
+        for (const [name, scale] of [['editor', editorScale], ['preview', previewScale]]) {
+            workspace.style.setProperty(`--${name}-scale`, scale);
+            workspace.style.setProperty(`--${name}-width`, `${210 * 96 / 25.4 * scale}px`);
+        }
+    }
+
     function renderPreview() {
         clearTimeout(previewTimer);
         if (isRendering || !artworkLoaded)
             return;
         isRendering = true;
+        fitSheets();
         numberArticles();
         numberMeetingItems();
         showActiveSections();
@@ -492,7 +512,8 @@
         paper.classList.toggle('gold', appearance.value.includes('gold'));
         schedulePreview();
     };
-    byId('view').value = 'both';
+    byId('view').value = window.innerWidth <= 740 ? 'editor' : 'both';
+    workspace.classList.toggle('editor-only', byId('view').value === 'editor');
     byId('view').onchange = () => {
         workspace.classList.toggle('preview-only', byId('view').value === 'preview');
         workspace.classList.toggle('editor-only', byId('view').value === 'editor');
@@ -614,6 +635,7 @@
             if (from[i].hidden)
                 to[i].style.display = 'none';
         }
+        clone.style.zoom = '1';
         clone.style.margin = '0';
         clone.style.boxShadow = 'none';
         clone.style.width = w + 'px';
@@ -801,6 +823,8 @@
         byId('cover-control').hidden = !cabinet;
         byId('report-control').hidden = type !== 'directive';
         appearance.style.display = cabinet ? 'none' : '';
+        byId('appearance-field').hidden = cabinet;
+        byId('content-tools').hidden = !['decree', 'minutes'].includes(type);
         if (cabinet) {
             const image = paper.querySelector('[data-artwork="cabinet-paper"]');
             paper.style.backgroundImage = `url("${image.src}")`;
@@ -808,7 +832,7 @@
             paper.style.removeProperty('background-image');
         }
         document.title = documentNames[type] + ' | Imperialist Robloxian Federation';
-        byId('brand-title').textContent = 'IRF Document Editor';
+        byId('brand-title').textContent = documentNames[type];
         applyStampSettings();
         renderPreview();
     }

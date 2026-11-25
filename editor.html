@@ -5,39 +5,56 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>IRF Government Document Editor</title>
-<link href="styles-v3.css" id="editor-styles" rel="stylesheet"/>
+<link href="styles-v4.css" id="editor-styles" rel="stylesheet"/>
 <link data-artwork="government-logo" href="assets/government-logo.webp" rel="icon"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<nav aria-label="Document editing tools" class="toolbar">
-<span class="brand">
-<img alt="IRF Government logo" class="toolbar-logo" data-artwork="government-logo" src="assets/government-logo.webp"/>
-<span id="brand-title">IRF Document Editor</span>
-</span>
-<a class="portal-home" href="index.html" id="portal-home">← Home</a>
-<span class="hint">Click the document to edit · grey text is a placeholder</span>
-<button id="add" type="button">+ Article</button>
-<button id="signature" type="button">Toggle second signature</button>
-<button id="classification" type="button">Toggle classification</button>
-<select aria-label="Document type" id="doc-type">
+<header class="app-header">
+    <div class="app-identity"><img data-artwork="government-logo" src="assets/government-logo.webp" alt="Government emblem"><div><span class="app-overline">Government document service</span><h1 id="brand-title">IRF Document Editor</h1></div></div>
+    <div class="export-actions" aria-label="Export document">
+        <span id="page-count" class="status" aria-live="polite">Loading artwork…</span>
+        <button disabled="" id="save" type="button">Save editable HTML</button>
+        <button disabled="" id="png" type="button">Export PNG pages</button>
+        <button class="primary" disabled="" id="print" type="button">Print / Save PDF</button>
+    </div>
+</header>
+<div class="app-layout">
+<aside class="toolbar" aria-label="Document editing tools">
+    <nav class="side-navigation" aria-label="Portal navigation"><a class="portal-home" href="index.html" id="portal-home">← Home</a></nav>
+    <div class="side-group">
+        <h2>Document</h2>
+        <label class="field-label" for="doc-type">Template</label>
+        <select aria-label="Document type" id="doc-type">
 <option selected="" value="decree">Prime Minister's Decree</option>
 <option value="appointment">Decree of Appointment</option>
 <option value="minutes">Cabinet Minutes</option>
 <option value="directive">Cabinet Directive</option>
 </select>
-<button hidden="" id="add-minute" type="button">+ Meeting item</button>
-<button hidden="" id="add-proposal" type="button">+ Proposal row</button>
-<button hidden="" id="remove-proposal" type="button">− Proposal row</button>
-<label class="cabinet-control" hidden="" id="cover-control"><input checked="" disabled="" id="include-cover" type="checkbox"/> Front cover included</label>
-<label class="cabinet-control" hidden="" id="report-control"><input id="include-report" type="checkbox"/> Report addendum</label>
-<select aria-label="Paper and crest appearance" id="appearance">
+        <div id="appearance-field"><label class="field-label" for="appearance">Appearance</label><select aria-label="Paper and crest appearance" id="appearance">
 <option value="archive">Ivory / monochrome</option>
 <option value="gold">Ivory / gold crest</option>
 <option value="clean">White / monochrome</option>
 <option value="clean gold">White / gold crest</option>
-</select>
-<label class="stamp-toggle"><input id="include-stamp" type="checkbox"/> Add PM stamp</label>
-<span class="stamp-settings" hidden="" id="stamp-settings">
+</select></div>
+        <label class="cabinet-control" hidden="" id="cover-control"><input checked="" disabled="" id="include-cover" type="checkbox"/> Front cover included</label>
+        <label class="cabinet-control" hidden="" id="report-control"><input id="include-report" type="checkbox"/> Report addendum</label>
+    </div>
+    <div class="side-group" id="content-tools">
+        <h2>Content</h2>
+        <button id="add" type="button">+ Article</button>
+        <button id="signature" type="button">Toggle second signature</button>
+        <button id="classification" type="button">Toggle classification</button>
+        <button hidden="" id="add-minute" type="button">+ Meeting item</button>
+        <button hidden="" id="add-proposal" type="button">+ Proposal row</button>
+        <button hidden="" id="remove-proposal" type="button">− Proposal row</button>
+    </div>
+    <div class="side-group">
+        <h2>Official stamp</h2>
+        <label class="stamp-toggle"><input id="include-stamp" type="checkbox"> Add PM stamp</label>
+        <span class="stamp-settings" hidden="" id="stamp-settings">
 <label>Size <select aria-label="Stamp size" id="stamp-size">
 <option value="25">Small (25 mm)</option>
 <option selected="" value="35">Medium (35 mm)</option>
@@ -49,19 +66,22 @@
 <option selected="" value="right">Right</option>
 </select></label>
 </span>
-<select aria-label="Document view" id="view">
+    </div>
+    <div class="side-group">
+        <h2>Workspace</h2>
+        <label class="field-label" for="view">View</label>
+        <select aria-label="Document view" id="view">
 <option value="both">Editor + A4 preview</option>
 <option value="preview">A4 preview only</option>
 <option value="editor">Editor only</option>
 </select>
-<span aria-live="polite" class="status" id="page-count">Loading artwork…</span>
-<button disabled="" id="png" type="button">Export PNG pages</button>
-<button disabled="" id="save" type="button">Save editable HTML</button>
-<button class="primary" disabled="" id="print" type="button">Print / Save PDF</button>
-</nav>
+        <p class="hint">Click the document to edit. Grey text is a placeholder.</p>
+    </div>
+    <p class="sidebar-note">Save your editable HTML before leaving.</p>
+</aside>
 <main class="workspace" id="workspace">
 <section class="editor-pane">
-<div class="pane-label">Editable document <span>Changes update the preview</span></div>
+<div class="pane-label"><div><span class="pane-kicker">01 / Source</span><h2>Editable document</h2></div><span>Click to edit</span></div>
 <article class="paper" data-cover="true" data-report="false" id="paper">
 <div class="cabinet-assets" hidden="">
 <img alt="" data-artwork="cabinet-paper" src="assets/cabinet-paper.jpg"/>
@@ -77,7 +97,7 @@
 <div aria-label="Government name" class="state edit" contenteditable="true" role="textbox">Government of the<br/>Imperialist Robloxian Federation</div>
 <div aria-label="Issuing office" class="office edit" contenteditable="true" role="textbox">Office of the Prime Minister</div>
 <div class="double-rule"></div>
-</img></header>
+</header>
 <section class="appointment-only appointment-certificate" hidden="">
 <div class="appointment-meta-row">
 <img alt="Imperial eagle" class="appointment-crest" data-artwork="imperial-eagle" src="assets/imperial-eagle.png">
@@ -85,16 +105,16 @@
 <span aria-label="Appointment date heading" class="edit inline" contenteditable="true" data-placeholder="Month Year" role="textbox"></span>
 </div>
 <div class="appointment-meta-item right">No. <span aria-label="Appointment number" class="edit inline" contenteditable="true" data-placeholder="0001" role="textbox"></span></div>
-</img></div>
+</div>
 <div class="appointment-office">OFFICE OF THE PRIME MINISTER</div>
-<h1 aria-label="Appointment title" class="appointment-title edit" contenteditable="true" role="textbox">DECREE OF APPOINTMENT</h1>
+<h2 aria-label="Appointment title" class="appointment-title edit" contenteditable="true" role="textbox">DECREE OF APPOINTMENT</h2>
 <div class="appointment-ornament">✦ ⸻ ✦</div>
 </section>
 <p class="appointment-lead appointment-only" hidden="">By the authority vested into the Prime Minister, by the Constitution of the Imperial Robloxian Federation, hereby appoints <span aria-label="Appointee name" class="edit inline strong" contenteditable="true" data-placeholder="Appointee Name" role="textbox"></span> to the position of <span aria-label="Appointed office" class="edit inline strong" contenteditable="true" data-placeholder="Office or Position" role="textbox"></span>.</p>
 <div aria-label="Appointment body" aria-multiline="true" class="appointment-body edit appointment-only" contenteditable="true" data-placeholder="Add the formal terms of appointment, duties, expectations and any further clauses here." hidden="" role="textbox">WHEREAS, the Office of the Prime Minister recognises the importance of effective leadership, responsible governance, and the appointment of qualified individuals to positions of trust and responsibility;
 
 The appointee shall assume the duties, powers, and responsibilities associated with this office in accordance with applicable laws, regulations, policies, and directives. The appointee is expected to uphold the principles of transparency, accountability, impartiality, and public service while carrying out all assigned functions.</div>
-<h1 aria-label="Document type" class="doctype edit decree-only" contenteditable="true" role="textbox">DECREE</h1>
+<h2 aria-label="Document type" class="doctype edit decree-only" contenteditable="true" role="textbox">DECREE</h2>
 <div class="number decree-only">No. <span aria-label="Decree number" class="edit inline" contenteditable="true" data-placeholder="000 / YY" role="textbox"></span></div>
 <div class="meta decree-only">
 <div>
@@ -128,7 +148,7 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 <div class="sign-line">
 <img alt="Uploaded signature" class="sign-art" hidden="">
 <div aria-label="Countersignature" class="edit" contenteditable="true" data-placeholder="Type signature or upload image" role="textbox"></div>
-</img></div>
+</div>
 <div class="signature-tools">
 <button data-sign="upload" type="button">Upload signature</button>
 <button data-sign="remove" type="button">Remove image</button>
@@ -159,7 +179,7 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 </div>
 <header class="cabinet-header minutes-only" hidden="">
 <img alt="Government emblem" class="cabinet-emblem" data-artwork="government-logo" src="assets/government-logo.webp"/>
-<h1>GOVERNMENT OF THE FEDERATION</h1>
+<h2>GOVERNMENT OF THE FEDERATION</h2>
 <div class="cabinet-office">FEDERAL CABINET</div>
 <div aria-label="Meeting title" class="edit cabinet-document-title" contenteditable="true" data-placeholder="" role="textbox">Minutes of the Federal Cabinet Meeting</div>
 <div aria-label="Meeting date" class="edit cabinet-date" contenteditable="true" data-placeholder="DAY DD MONTH YYYY" role="textbox"></div>
@@ -184,7 +204,7 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 </div>
 <header class="cabinet-header directive-only" hidden="">
 <img alt="Office of the Cabinet Clerk seal" class="cabinet-emblem clerk-emblem" data-artwork="cabinet-clerk" src="assets/cabinet-clerk.png"/>
-<h1>OFFICE OF THE CABINET CLERK</h1>
+<h2>OFFICE OF THE CABINET CLERK</h2>
 <div class="directive-number">DIRECTIVE <span aria-label="Directive number" class="edit inline" contenteditable="true" data-placeholder="001" role="textbox"></span></div>
 <div aria-label="Directive subject" class="edit cabinet-subject" contenteditable="true" data-placeholder="SUBJECT OF THE DIRECTIVE" role="textbox"></div>
 </header>
@@ -199,7 +219,7 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 <div class="document-stamp" hidden=""><img alt="Office of the Prime Minister stamp" data-artwork="pm-stamp" src="assets/prime-minister-stamp.png"/></div>
 </div>
 <header class="directive-only report-only cabinet-report-header" data-page-break="true" hidden="">
-<h1>MINISTRY OF <span aria-label="Ministry name" class="edit inline" contenteditable="true" data-placeholder="[XXX]" role="textbox"></span></h1>
+<h2>MINISTRY OF <span aria-label="Ministry name" class="edit inline" contenteditable="true" data-placeholder="[XXX]" role="textbox"></span></h2>
 <div class="cabinet-office">REPORT DATED <span aria-label="Report date" class="edit inline" contenteditable="true" data-placeholder="DD/MM/YYYY" role="textbox"></span></div>
 <div class="cabinet-subject">Fortnightly Ministry Report</div>
 </header>
@@ -210,10 +230,11 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 </article>
 </section>
 <section class="preview-pane">
-<div class="pane-label">A4 output preview <span>Actual page breaks</span></div>
+<div class="pane-label"><div><span class="pane-kicker">02 / Output</span><h2>A4 preview</h2></div><span>Actual page breaks</span></div>
 <div class="preview-pages" id="preview-pages"></div>
 </section>
 </main>
-<script id="editor-script" src="editor-v3.js"></script>
+</div>
+<script id="editor-script" src="editor-v4.js"></script>
 </body>
 </html>
