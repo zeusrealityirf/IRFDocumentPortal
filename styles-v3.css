@@ -1137,3 +1137,11 @@ body {
     max-width: 100%;
     object-fit: contain;
 }
+
+/* Hidden source sections must stay hidden even when a template rule sets display. */
+#paper > [hidden], .toolbar [hidden] { display: none !important; }
+.toolbar .portal-home:visited { color: #fff; }
+.toolbar button:disabled { opacity: .55; cursor: wait; }
+@media print {
+    .preview-page.paper.mode-cabinet.cabinet-cover { padding: 0 !important; }
+}

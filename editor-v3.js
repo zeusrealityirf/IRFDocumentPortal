@@ -20,6 +20,8 @@
     const assetStore = document.getElementById('embedded-assets');
     const embeddedAssets = assetStore ? JSON.parse(assetStore.textContent) : {};
     const assetReady = loadArtwork();
+    let artworkLoaded = false;
+    assetReady.then(() => { artworkLoaded = true; }).catch(() => {});
     let previewTimer = 0, isRendering = false;
     const byId = id => document.getElementById(id);
     // Artwork must be embedded before the browser can rasterise an SVG page.
@@ -181,13 +183,31 @@
     }
     // Measure on actual A4-width output, not guessed character counts. Split long editable text at word boundaries, or characters for unbroken strings.
 
+    function belongsToDocument(element) {
+        const type = documentType.value;
+        const classes = element.classList;
+        if (classes.contains('cabinet-assets')) return false;
+        if (classes.contains('report-only') && (type !== 'directive' || paper.dataset.report !== 'true')) return false;
+        if (classes.contains('minutes-only')) return type === 'minutes';
+        if (classes.contains('directive-only')) return type === 'directive';
+        if (classes.contains('appointment-only')) return type === 'appointment';
+        if (classes.contains('decree-only')) return type === 'decree';
+        if (classes.contains('pm-only')) return type === 'decree' || type === 'appointment';
+        return false;
+    }
+
+    function showActiveSections() {
+        for (const section of paper.children) section.hidden = !belongsToDocument(section);
+    }
+
     function renderPreview() {
         clearTimeout(previewTimer);
-        if (isRendering)
+        if (isRendering || !artworkLoaded)
             return;
         isRendering = true;
         numberArticles();
         numberMeetingItems();
+        showActiveSections();
         const editor = paper.parentElement;
         const restoreEditor = editor.getAttribute("style");
         if (!editor.getClientRects().length) {
@@ -210,7 +230,7 @@
             pages.push(currentPage);
             return currentPage;
         }
-        if (isCabinet() && paper.dataset.cover === 'true') {
+        if (isCabinet()) {
             const cover = next();
             cover.p.classList.add('cabinet-cover');
             cover.p.querySelector('.cabinet-page-art').src = paper.querySelector(`[data-artwork="${documentType.value}-cover"]`).src;
@@ -277,7 +297,7 @@
             }
         }
         for (const el of paper.children) {
-            if (getComputedStyle(el).display === 'none')
+            if (!belongsToDocument(el))
                 continue;
             if (el.dataset.pageBreak && currentPage.content.children.length)
                 next();
@@ -440,6 +460,7 @@
     byId('include-report').checked = paper.dataset.report === 'true';
     byId('include-report').onchange = event => {
         paper.dataset.report = String(event.target.checked);
+        showActiveSections();
         schedulePreview();
     };
 
@@ -560,7 +581,11 @@
             alert('Could not load the document artwork. ' + error.message);
         }
     };
-    window.addEventListener('beforeprint', renderPreview);
+    // The print button prepares the screen preview before opening the print dialog.
+    // Do not rebuild it under print-only CSS: the editor is hidden there.
+    window.addEventListener('beforeprint', () => {
+        if (!window.matchMedia('print').matches) renderPreview();
+    });
     byId('save').onclick = async () => {
         document.activeElement.blur();
         renderPreview();
@@ -770,6 +795,7 @@
         for (const id of ['add-minute', 'add-proposal', 'remove-proposal'])
             byId(id).hidden = type !== 'minutes';
         paper.dataset.cover = cabinet ? 'true' : 'false';
+        showActiveSections();
         byId('include-cover').checked = cabinet;
         byId('include-cover').disabled = true;
         byId('cover-control').hidden = !cabinet;
@@ -784,7 +810,7 @@
         document.title = documentNames[type] + ' | Imperialist Robloxian Federation';
         byId('brand-title').textContent = 'IRF Document Editor';
         applyStampSettings();
-        schedulePreview();
+        renderPreview();
     }
     // The portal opens the selected template directly. Saved offline copies
     // continue to use the document type recorded in their markup.
@@ -801,6 +827,12 @@
     documentType.onchange = updateDocumentType;
     updateDocumentType();
     renderPreview();
-    assetReady.then(() => { updateDocumentType(); renderPreview(); }).catch(error => console.error('Artwork:', error));
+    assetReady.then(() => {
+        updateDocumentType();
+        for (const id of ['png', 'save', 'print']) byId(id).disabled = false;
+    }).catch(error => {
+        byId('page-count').textContent = 'Artwork failed to load. Check the assets folder and refresh.';
+        console.error('Artwork:', error);
+    });
     window.addEventListener('resize', schedulePreview);
 })();

@@ -44,3 +44,7 @@ Select **Add PM stamp** in any template to include the transparent red Office of
 - Separated HTML, CSS, JavaScript and local image assets.
 
 A `.nojekyll` file is not required for this static site.
+
+## Repair release
+
+Upload all files together. This release uses fresh `editor-v3.js`, `styles-v3.css` and `portal-v3.css` filenames to avoid mixing cached releases. The exporter selects content by document type rather than relying on CSS visibility. Keep the `assets` directory. Old `editor.js`, `styles.css` and `portal.css` may be removed once the updated files are deployed.
