@@ -23,17 +23,17 @@
             return;
         }
         try {
-            const documents = await store.list();
+            const { documents, cloudError } = await store.list();
             documents.sort((a, b) => b.updatedAt - a.updatedAt);
             list.replaceChildren();
             count.textContent = `${documents.length} ${documents.length === 1 ? 'draft' : 'drafts'}`;
-            status.textContent = documents.length ? '' : 'No saved documents yet. Choose a template below and select Save draft.';
+            status.textContent = cloudError ? "Cloud drafts could not load. Local drafts are still available." : documents.length ? "" : "No saved documents yet. Choose a template below and select Save draft.";
             for (const draft of documents) {
                 const row = element('li', 'draft-row');
                 const info = element('div', 'draft-info');
                 const name = element('a', 'draft-title', draft.name);
-                name.href = `editor.html?v=7&draft=${encodeURIComponent(draft.id)}`;
-                info.append(name, element('span', 'draft-meta', `${names[draft.type] || 'Document'} · Saved ${dateFormat.format(draft.updatedAt)}`));
+                name.href = `editor.html?v=8&draft=${encodeURIComponent(draft.id)}`;
+                info.append(name, element('span', 'draft-meta', `${names[draft.type] || 'Document'} · ${store.isCloud(draft.id) ? 'Cloud account' : 'This device'} · Saved ${dateFormat.format(draft.updatedAt)}`));
                 const actions = element('div', 'draft-actions');
                 const edit = element('a', 'draft-open', 'Continue editing →');
                 edit.href = name.href;
@@ -41,7 +41,7 @@
                 remove.type = 'button';
                 remove.setAttribute('aria-label', `Delete ${draft.name}`);
                 remove.addEventListener('click', async () => {
-                    if (!confirm(`Delete “${draft.name}” from this browser? This cannot be undone.`)) return;
+                    if (!confirm(`Delete “${draft.name}” ${store.isCloud(draft.id) ? "from your cloud account" : "from this device"}? This cannot be undone.`)) return;
                     try {
                         await store.remove(draft.id);
                         await renderLibrary();
@@ -59,7 +59,29 @@
         }
     }
 
+    const accountButton = document.getElementById('account-action');
+    const accountLabel = document.getElementById('account-label');
+    const accountStatus = document.getElementById('account-status');
+    const auth = window.IRFAuth;
+    async function showAccount() {
+        try {
+            if (!auth?.available) throw new Error('Sign-in service could not load. Local saving is available.');
+            const current = await auth.session();
+            accountLabel.textContent = current ? 'Signed in with Discord' : 'Not signed in';
+            accountStatus.textContent = current ? (current.user.user_metadata?.full_name || current.user.user_metadata?.name || 'Cloud storage available') : 'Sign in to access documents across devices.';
+            accountButton.textContent = current ? 'Sign out' : 'Sign in with Discord';
+            accountButton.disabled = false;
+            accountButton.onclick = async () => {
+                accountButton.disabled = true;
+                try {
+                    if (current) { await auth.signOut(); await showAccount(); await renderLibrary(); }
+                    else await auth.signIn();
+                } catch (error) { accountStatus.textContent = error.message; accountButton.disabled = false; }
+            };
+        } catch (error) { accountLabel.textContent = 'Account unavailable'; accountStatus.textContent = error.message; }
+    }
+    showAccount();
     renderLibrary();
     window.addEventListener('pageshow', renderLibrary);
-    window.addEventListener('focus', renderLibrary);
+    window.addEventListener('focus', () => { showAccount(); renderLibrary(); });
 })();

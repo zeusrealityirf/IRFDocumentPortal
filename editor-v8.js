@@ -8,12 +8,24 @@
     if (requestedDraft) {
         try {
             savedDraft = await drafts.get(requestedDraft);
-            if (!savedDraft || savedDraft.version !== 1) throw new Error('This draft could not be found in this browser.');
+            if (!savedDraft || savedDraft.version !== 1) throw new Error('This draft could not be found in your selected storage location.');
             const original = document.getElementById('paper');
             const artwork = new Map([...original.querySelectorAll('[data-artwork]')]
                 .map(image => [image.dataset.artwork, image.getAttribute('src')]));
             const template = document.createElement('template');
             template.innerHTML = savedDraft.paper;
+            const allowedTags = new Set(['article','header','footer','section','div','span','p','h2','h3','br','button','img','input','strong','b','i','em','u','ul','ol','li','table','thead','tbody','tr','td','th']);
+            const allowedAttributes = new Set(['id','class','role','title','alt','hidden','disabled','type','accept','contenteditable','aria-label','aria-hidden','aria-multiline','data-artwork','data-page-break','data-placeholder','data-sign','data-cover','data-report','data-document-type','data-initialized','data-stamp-settings','colspan','rowspan']);
+            for (const node of [...template.content.querySelectorAll('*')]) {
+                if (!allowedTags.has(node.localName)) { node.remove(); continue; }
+                for (const attribute of [...node.attributes]) {
+                    if (allowedAttributes.has(attribute.name)) continue;
+                    if (attribute.name === 'src' && node.localName === 'img' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(attribute.value)) continue;
+                    node.removeAttribute(attribute.name);
+                }
+                if (node.localName === 'input') node.type = 'file';
+                if (node.localName === 'button') node.type = 'button';
+            }
             const restored = template.content.firstElementChild;
             if (!restored || restored.id !== 'paper') throw new Error('The saved draft is invalid.');
             restored.querySelectorAll('[data-artwork]').forEach(image => {
@@ -103,6 +115,8 @@
         clone.querySelector('#draft-controls')?.remove();
         clone.querySelector('#save-draft')?.remove();
         clone.querySelector('#draft-store-script')?.remove();
+        clone.querySelector('#cloud-sdk')?.remove();
+        clone.querySelector('#cloud-config')?.remove();
         const note = clone.querySelector('.sidebar-note');
         if (note) note.textContent = 'Download editable HTML to keep your changes.';
         clone.querySelector('#workspace').classList.remove('preview-only', 'editor-only');
@@ -980,6 +994,8 @@
     let saving = false;
     const draftName = byId('draft-name');
     const draftStatus = byId('draft-status');
+    const destination = byId('draft-destination');
+    const accountHint = byId('draft-account');
     const saveDraftButton = byId('save-draft');
 
     function draftContent() {
@@ -1007,18 +1023,20 @@
         draftStatus.textContent = 'Saving…';
         try {
             const content = draftContent();
-            const id = draftId || drafts.newId();
+            const selected = destination.value;
+            const sameLocation = draftId && drafts.isCloud(draftId) === (selected === 'cloud');
+            const id = sameLocation ? draftId : drafts.newId(selected);
             await drafts.put({ ...content, id, version: 1, updatedAt: Date.now() });
             draftId = id;
             draftName.value = content.name;
             lastSaved = JSON.stringify(content);
-            draftStatus.textContent = 'Saved in this browser.';
+            draftStatus.textContent = drafts.isCloud(draftId) ? 'Saved to your cloud account.' : 'Saved on this device.';
             const url = new URL(location.href);
             url.searchParams.delete('type');
             url.searchParams.set('draft', id);
             history.replaceState(null, '', url);
         } catch (error) {
-            draftStatus.textContent = 'Could not save. Download editable HTML as a backup.';
+            draftStatus.textContent = 'Could not save: ' + (error.message || 'storage unavailable') + '. Download editable HTML as a backup.';
             console.error('Draft storage:', error);
         } finally {
             saving = false;
@@ -1030,7 +1048,15 @@
     if (drafts && saveDraftButton) {
         byId('draft-controls').hidden = false;
         draftName.value = savedDraft?.name || '';
-        if (savedDraft) draftStatus.textContent = 'Saved in this browser.';
+        if (destination) {
+            try {
+                const current = await window.IRFAuth?.session();
+                destination.options[1].disabled = !current;
+                destination.value = savedDraft ? (drafts.isCloud(draftId) ? 'cloud' : 'local') : current ? 'cloud' : 'local';
+                accountHint.textContent = current ? 'Changing storage location creates a separate copy.' : 'Sign in on the entrance page to enable cloud saving.';
+            } catch (error) { accountHint.textContent = 'Cloud unavailable. Save on this device or download a backup.'; }
+        }
+        if (savedDraft) draftStatus.textContent = drafts.isCloud(draftId) ? 'Saved to your cloud account.' : 'Saved on this device.';
         saveDraftButton.addEventListener('click', saveDraft);
         for (const eventName of ['input', 'change', 'click']) {
             document.addEventListener(eventName, () => {

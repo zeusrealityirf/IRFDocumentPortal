@@ -32,7 +32,7 @@
         });
     }
 
-    window.IRFDrafts = {
+    window.IRFLocalDrafts = {
         get: id => run('readonly', store => store.get(id)),
         list: () => run('readonly', store => store.getAll()),
         put: draft => run('readwrite', store => store.put(draft)),

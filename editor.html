@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>IRF Government Document Editor</title>
-<link href="styles-v7.css" id="editor-styles" rel="stylesheet"/>
+<link href="styles-v8.css" id="editor-styles" rel="stylesheet"/>
 <link data-artwork="government-logo" href="assets/government-logo.webp" rel="icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -29,6 +29,9 @@
 <h2>Saved document</h2>
 <label class="field-label" for="draft-name">Draft name</label>
 <input id="draft-name" type="text" maxlength="120" placeholder="[Document name]" autocomplete="off"/>
+<label class="field-label" for="draft-destination">Save to</label>
+<select id="draft-destination"><option value="local">This device</option><option value="cloud" disabled>Discord account (cloud)</option></select>
+<p id="draft-account" class="hint"></p>
 <p id="draft-status" class="hint" role="status" aria-live="polite">Not saved yet.</p>
 <a class="draft-library-link" href="index.html#saved-documents">View saved documents →</a>
 <p class="hint">Drafts are stored in this browser. Download editable HTML for a portable backup.</p>
@@ -272,7 +275,9 @@ The appointee shall assume the duties, powers, and responsibilities associated w
 </section>
 </main>
 </div>
-<script id="draft-store-script" src="draft-store-v7.js"></script>
-<script id="editor-script" src="editor-v7.js"></script>
+<script id="draft-store-script" src="draft-store-v8.js"></script>
+<script id="cloud-sdk" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
+<script id="cloud-config" src="cloud-v8.js"></script>
+<script id="editor-script" src="editor-v8.js"></script>
 </body>
 </html>
