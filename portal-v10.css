@@ -136,3 +136,13 @@ h1 { font-family: var(--display); font-size: clamp(40px, 5.2vw, 76px); line-heig
 .account-bar button { background:var(--accent); color:white; border:1px solid var(--accent); padding:12px 16px; font:inherit; font-size:13px; cursor:pointer; }
 .account-bar button:disabled { opacity:.65; cursor:wait; }
 @media(max-width:540px) { .account-bar { flex-direction:column; align-items:stretch; gap:12px; } }
+
+
+/* Preserve the editorial catalogue rhythm with an odd number of templates. */
+.policy-card { grid-column: 1 / -1; grid-template-columns: minmax(180px, .42fr) 1fr; }
+.policy-mini { font-family: 'Courier New', monospace; background: #f8f8f7 url('assets/policy-paper.jpg') center/cover; align-items: stretch; }
+.policy-mini strong { font-size: 7px; letter-spacing: .08em; margin: 5px 0; }
+.mini-transmission { font-size: 5px; line-height: 1.45; margin-bottom: 5px; }
+.policy-mini .mini-lines { flex-shrink: 0; }
+@media(max-width: 950px) { .policy-card { grid-column: auto; grid-template-columns: minmax(125px,.65fr) 1.35fr; } }
+@media(max-width: 540px) { .policy-card { grid-template-columns: 126px 1fr; } }

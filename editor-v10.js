@@ -15,7 +15,7 @@
             const template = document.createElement('template');
             template.innerHTML = savedDraft.paper;
             const allowedTags = new Set(['article','header','footer','section','div','span','p','h2','h3','br','button','img','input','strong','b','i','em','u','ul','ol','li','table','thead','tbody','tr','td','th']);
-            const allowedAttributes = new Set(['id','class','role','title','alt','hidden','disabled','type','accept','contenteditable','aria-label','aria-hidden','aria-multiline','data-artwork','data-page-break','data-placeholder','data-sign','data-cover','data-report','data-document-type','data-initialized','data-stamp-settings','colspan','rowspan']);
+            const allowedAttributes = new Set(['id','class','role','title','alt','hidden','disabled','type','accept','contenteditable','aria-label','aria-hidden','aria-multiline','data-artwork','data-page-break','data-placeholder','data-sign','data-cover','data-report','data-document-type','data-initialized','data-stamp-settings','data-scan','colspan','rowspan']);
             for (const node of [...template.content.querySelectorAll('*')]) {
                 if (!allowedTags.has(node.localName)) { node.remove(); continue; }
                 for (const attribute of [...node.attributes]) {
@@ -32,6 +32,17 @@
                 const src = artwork.get(image.dataset.artwork);
                 if (src) image.setAttribute('src', src);
             });
+            // Older drafts predate the policy instrument. Keep their contents and add the new template.
+            if (!restored.querySelector('#policy-clauses')) {
+                for (const section of original.querySelectorAll(':scope > .policy-only')) {
+                    restored.append(section.cloneNode(true));
+                }
+            }
+            if (!restored.querySelector('[data-artwork="policy-paper"]')) {
+                restored.querySelector('.cabinet-assets').append(
+                    original.querySelector('[data-artwork="policy-paper"]').cloneNode(true)
+                );
+            }
             original.replaceWith(restored);
             document.querySelectorAll('[data-checklist]').forEach((input, index) => {
                 input.checked = Boolean(savedDraft.checklist?.[index]);
@@ -53,15 +64,16 @@
         decree: "Prime Minister's Decree",
         appointment: 'Decree of Appointment',
         minutes: 'Cabinet Minutes',
-        directive: 'Cabinet Directive', proposal: 'Federal Cabinet Proposal', bill: 'Imperial Bill'
+        directive: 'Cabinet Directive', proposal: 'Federal Cabinet Proposal', bill: 'Imperial Bill', policy: 'Policy Instrument'
     };
     const fileNames = {
         decree: 'IRF-Decree', appointment: 'IRF-Appointment',
-        minutes: 'IRF-Cabinet-Minutes', directive: 'IRF-Cabinet-Directive', proposal: 'IRF-Cabinet-Proposal', bill: 'IRF-Imperial-Bill'
+        minutes: 'IRF-Cabinet-Minutes', directive: 'IRF-Cabinet-Directive', proposal: 'IRF-Cabinet-Proposal', bill: 'IRF-Imperial-Bill', policy: 'IRF-Policy-Instrument'
     };
     const legislationModes = ['proposal', 'bill'];
     const isLegislation = () => legislationModes.includes(documentType.value);
     const isCabinet = () => cabinetModes.includes(documentType.value);
+    const isPolicy = () => documentType.value === 'policy';
     const assetStore = document.getElementById('embedded-assets');
     const embeddedAssets = assetStore ? JSON.parse(assetStore.textContent) : {};
     const assetReady = loadArtwork();
@@ -175,6 +187,7 @@
             el.querySelector('.article-head').focus();
         schedulePreview();
     }
+    paper.querySelectorAll(':scope > .scan-artifact').forEach(element => element.remove());
     if (!articles.children.length && !paper.dataset.initialized) {
         for (let i = 0; i < 3; i++)
             addArticle();
@@ -184,6 +197,23 @@
     function schedulePreview() {
         clearTimeout(previewTimer);
         previewTimer = setTimeout(renderPreview, 90);
+    }
+
+
+    function ensureScanArtifacts(root) {
+        if (!root) return;
+        if (!root.querySelector(':scope > .scan-artifact.scan-speckles')) {
+            const speckles = document.createElement('div');
+            speckles.className = 'scan-artifact scan-speckles';
+            speckles.setAttribute('aria-hidden', 'true');
+            root.append(speckles);
+        }
+        if (!root.querySelector(':scope > .scan-artifact.scan-shadow')) {
+            const shadow = document.createElement('div');
+            shadow.className = 'scan-artifact scan-shadow';
+            shadow.setAttribute('aria-hidden', 'true');
+            root.append(shadow);
+        }
     }
 
     function cloneForPreview(el) {
@@ -215,7 +245,7 @@
         btn.textContent = 'Download page PNG';
         caption.append(title, btn);
         const p = document.createElement('article');
-        p.className = 'paper preview-page ' + [...paper.classList].filter(x => x !== 'paper').join(' ');
+        p.className = 'paper preview-page ' + [...paper.classList].filter(x => x !== 'paper' && x !== 'scan-mode').join(' ');
         const content = document.createElement('div');
         content.className = 'page-content';
         const end = document.createElement('div');
@@ -243,7 +273,17 @@
             background.src = paper.querySelector('[data-artwork="cabinet-paper"]').src;
             p.append(background);
         }
+        if (isPolicy()) {
+            const background = document.createElement('img');
+            background.className = 'policy-page-art';
+            background.alt = '';
+            background.src = paper.querySelector('[data-artwork="policy-paper"]').src;
+            p.append(background);
+            end.firstElementChild.textContent = 'PRINTOUT CONTINUES — ON NEXT PAGE';
+            end.lastElementChild.textContent = '';
+        }
         p.append(content, end);
+        ensureScanArtifacts(p);
         wrap.append(caption, p);
         preview.append(wrap);
         btn.onclick = () => exportPagePng(p, [...preview.children].indexOf(wrap) + 1);
@@ -262,6 +302,7 @@
         const classes = element.classList;
         if (classes.contains('cabinet-assets')) return false;
         if (classes.contains('report-only') && (type !== 'directive' || paper.dataset.report !== 'true')) return false;
+        if (classes.contains('policy-only')) return type === 'policy';
         if (classes.contains('proposal-only')) return type === 'proposal';
         if (classes.contains('bill-only')) return type === 'bill';
         if (classes.contains('minutes-only')) return type === 'minutes';
@@ -301,6 +342,7 @@
         fitSheets();
         numberArticles();
         numberMeetingItems();
+        numberPolicyClauses();
         showActiveSections();
         const editor = paper.parentElement;
         const restoreEditor = editor.getAttribute("style");
@@ -396,7 +438,27 @@
             if (el.dataset.pageBreak && currentPage.content.children.length)
                 next();
             if (el.classList.contains('legislation-author')) continue;
-            if (el.classList.contains('legislation-list')) {
+            if (el.id === 'policy-clauses') {
+                for (const clause of el.querySelectorAll('.policy-clause')) {
+                    splitText(getEditableText(clause.querySelector('.policy-text')), (text, continued) => {
+                        const block = cloneForPreview(clause);
+                        block.querySelector('.policy-text').textContent = text;
+                        if (continued) {
+                            block.querySelector('.policy-clause-heading').remove();
+                            block.querySelector('.policy-index').textContent = '';
+                            block.querySelector('.policy-clause-mark').remove();
+                        }
+                        return block;
+                    });
+                }
+            } else if (el.classList.contains('policy-preamble')) {
+                splitText(getEditableText(el), (text, continued) => {
+                    const block = cloneForPreview(el);
+                    block.textContent = text;
+                    if (continued) block.style.minHeight = '0';
+                    return block;
+                });
+            } else if (el.classList.contains('legislation-list')) {
                 const entries = [...el.querySelectorAll('.legislation-item')];
                 entries.forEach((item, index) => {
                     splitText(getEditableText(item.querySelector('.legislation-text')), (text, continued) => {
@@ -508,8 +570,14 @@
             }
         }
         pages.forEach((x, i) => {
+            x.p.classList.toggle('scan-mode', paper.dataset.scan === 'true');
             x.title.textContent = 'Page ' + (i + 1) + ' of ' + pages.length + (x.p.classList.contains('cabinet-cover') ? ' · Cover' : '');
-            x.end.lastElementChild.textContent = 'Page ' + (i + 1) + (isLegislation() ? ' of ' : ' / ') + pages.length;
+            if (isPolicy()) {
+                x.end.firstElementChild.textContent = i < pages.length - 1 ? 'PRINTOUT CONTINUES — ON NEXT PAGE' : '';
+                x.end.lastElementChild.textContent = '';
+            } else {
+                x.end.lastElementChild.textContent = 'Page ' + (i + 1) + (isLegislation() ? ' of ' : ' / ') + pages.length;
+            }
         });
         byId('page-count').textContent = pages.length + ' A4 ' + (pages.length === 1 ? 'page' : 'pages');
         if (hidden) {
@@ -522,6 +590,30 @@
             editor.setAttribute("style", restoreEditor);
         isRendering = false;
     }
+    const policyClauses = byId('policy-clauses');
+    const policyClauseTemplate = policyClauses.querySelector('.policy-clause').cloneNode(true);
+
+    function numberPolicyClauses() {
+        [...policyClauses.children].forEach((clause, index) => {
+            clause.querySelector('.policy-index').textContent = (index + 1) + '.';
+        });
+    }
+    byId('add-policy-clause').onclick = () => {
+        const clause = blankCopy(policyClauseTemplate);
+        policyClauses.append(clause);
+        numberPolicyClauses();
+        clause.querySelector('.policy-clause-heading').focus();
+        schedulePreview();
+    };
+    policyClauses.addEventListener('click', event => {
+        const button = event.target.closest('.policy-remove');
+        if (!button || policyClauses.children.length <= 1) return;
+        if (confirm('Remove this clause?')) {
+            button.closest('.policy-clause').remove();
+            numberPolicyClauses();
+            schedulePreview();
+        }
+    });
     const meetingItems = byId('minutes-items');
     const proposalRows = byId('proposal-rows');
     const meetingItemTemplate = meetingItems.querySelector('.cabinet-item').cloneNode(true);
@@ -646,6 +738,16 @@
         paper.classList.toggle('gold', appearance.value.includes('gold'));
         schedulePreview();
     };
+    const scanToggle = byId('scan-effect');
+    if (scanToggle) {
+        scanToggle.checked = paper.classList.contains('scan-mode') || paper.dataset.scan === 'true';
+        paper.classList.remove('scan-mode');
+        paper.dataset.scan = String(scanToggle.checked);
+        scanToggle.addEventListener('change', () => {
+            paper.dataset.scan = String(scanToggle.checked);
+            schedulePreview();
+        });
+    }
     byId('view').value = window.innerWidth <= 740 ? 'editor' : 'both';
     workspace.classList.toggle('editor-only', byId('view').value === 'editor');
     byId('view').onchange = () => {
@@ -703,10 +805,10 @@
             return;
         e.preventDefault();
         const t = e.clipboardData.getData('text/plain');
-        document.execCommand('insertText', false, ed.matches('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field,.legislation-text') ? t : t.replace(/\r?\n/g, ' '));
+        document.execCommand('insertText', false, ed.matches('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field,.legislation-text,.policy-text') ? t : t.replace(/\r?\n/g, ' '));
     });
     paper.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && e.target.closest('.edit') && !e.target.closest('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field,.legislation-text'))
+        if (e.key === 'Enter' && e.target.closest('.edit') && !e.target.closest('.article-body,.preamble,.appointment-body,.cabinet-text,.proposal-field,.legislation-text,.policy-text'))
             e.preventDefault();
     });
     paper.addEventListener('focusout', e => {
@@ -790,7 +892,10 @@
         const canvas = document.createElement('canvas');
         canvas.width = 1588;
         canvas.height = 2246;
-        canvas.getContext('2d').drawImage(im, 0, 0, canvas.width, canvas.height);
+        const context = canvas.getContext('2d');
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(im, 0, 0, canvas.width, canvas.height);
         return canvas;
     }
 
@@ -944,7 +1049,7 @@
         const cabinet = isCabinet();
         const legislation = isLegislation();
         paper.dataset.documentType = type;
-        for (const mode of ['appointment', ...cabinetModes, ...legislationModes])
+        for (const mode of ['appointment', 'policy', ...cabinetModes, ...legislationModes])
             paper.classList.toggle('mode-' + mode, type === mode);
         paper.classList.toggle('mode-cabinet', cabinet);
         paper.classList.toggle('mode-legislation', legislation);
@@ -958,15 +1063,19 @@
         byId('include-cover').disabled = true;
         byId('cover-control').hidden = !cabinet;
         byId('report-control').hidden = type !== 'directive';
-        appearance.style.display = cabinet || legislation ? 'none' : '';
-        byId('appearance-field').hidden = cabinet || legislation;
-        byId('content-tools').hidden = !['decree', 'minutes', 'proposal', 'bill'].includes(type);
+        appearance.style.display = cabinet || legislation || isPolicy() ? 'none' : '';
+        byId('appearance-field').hidden = cabinet || legislation || isPolicy();
+        byId('content-tools').hidden = !['decree', 'minutes', 'proposal', 'bill', 'policy'].includes(type);
         for (const id of ['add-definition', 'add-section']) byId(id).hidden = type !== 'proposal';
         for (const id of ['add-bill-article', 'add-subarticle', 'add-comment']) byId(id).hidden = type !== 'bill';
         byId('proposal-guide').hidden = type !== 'proposal';
         byId('bill-guide').hidden = type !== 'bill';
+        byId('add-policy-clause').hidden = !isPolicy();
         if (cabinet) {
             const image = paper.querySelector('[data-artwork="cabinet-paper"]');
+            paper.style.backgroundImage = `url("${image.src}")`;
+        } else if (isPolicy()) {
+            const image = paper.querySelector('[data-artwork="policy-paper"]');
             paper.style.backgroundImage = `url("${image.src}")`;
         } else if (legislation) {
             const image = paper.querySelector(`[data-artwork="${type}-letterhead"]`);

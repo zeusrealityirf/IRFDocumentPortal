@@ -6,7 +6,7 @@
     const names = {
         decree: "Prime Minister's Decree", appointment: 'Decree of Appointment',
         minutes: 'Cabinet Minutes', directive: 'Cabinet Directive',
-        proposal: 'Federal Cabinet Proposal', bill: 'Imperial Bill'
+        proposal: 'Federal Cabinet Proposal', bill: 'Imperial Bill', policy: 'Policy Instrument'
     };
     const dateFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -32,7 +32,7 @@
                 const row = element('li', 'draft-row');
                 const info = element('div', 'draft-info');
                 const name = element('a', 'draft-title', draft.name);
-                name.href = `editor.html?v=8&draft=${encodeURIComponent(draft.id)}`;
+                name.href = `editor.html?v=10&draft=${encodeURIComponent(draft.id)}`;
                 info.append(name, element('span', 'draft-meta', `${names[draft.type] || 'Document'} · ${store.isCloud(draft.id) ? 'Cloud account' : 'This device'} · Saved ${dateFormat.format(draft.updatedAt)}`));
                 const actions = element('div', 'draft-actions');
                 const edit = element('a', 'draft-open', 'Continue editing →');
